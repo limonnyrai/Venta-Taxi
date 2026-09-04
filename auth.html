@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venta Taxi — Вход</title>
+<style>
+:root{--bg:#111;--card:#1a1a1a;--gold:#d9a441;--white:#fff;--muted:#aaa;--red:#c0392b;--green:#41b883}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#2b2418 0,#111 45%);color:var(--white);font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:430px}
+.logo{text-align:center;font-size:46px;font-weight:900;letter-spacing:1px;color:var(--gold);margin-bottom:4px}
+.sub{text-align:center;color:var(--muted);margin-bottom:24px}
+.card{background:rgba(26,26,26,.96);border:1px solid #333;border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{flex:1;padding:12px;border:1px solid #333;border-radius:12px;background:#151515;color:#aaa;cursor:pointer;font-weight:700}
+.tab.active{background:#2b2418;border-color:var(--gold);color:var(--gold)}
+label{display:block;font-size:13px;color:#aaa;margin:14px 0 6px}
+input{width:100%;padding:14px 15px;border-radius:12px;border:1px solid #3a3a3a;background:#101010;color:#fff;font-size:16px;outline:none}
+input:focus{border-color:var(--gold)}
+button{width:100%;padding:14px;border:0;border-radius:12px;background:var(--gold);color:#111;font-size:16px;font-weight:800;cursor:pointer;margin-top:18px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.secondary{background:#292929;color:#fff}
+.msg{min-height:22px;margin-top:14px;text-align:center;color:#ffcc66;font-size:14px;line-height:1.4}
+.hidden{display:none}
+.code-row{display:grid;grid-template-columns:1fr 120px;gap:10px}
+.small{font-size:12px;color:#888;text-align:center;margin-top:14px}
+.success{color:#65d69a}
+.error{color:#ff8c82}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">Venta</div>
+  <div class="sub">Taxi · единый аккаунт на телефоне и компьютере</div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabRegister" type="button">Регистрация</button>
+      <button class="tab" id="tabLogin" type="button">Вход</button>
+    </div>
+
+    <section id="registerBox">
+      <label for="regEmail">E-mail</label>
+      <input id="regEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label for="regPass">Пароль</label>
+      <input id="regPass" type="password" autocomplete="new-password" placeholder="Минимум 6 символов">
+      <button id="registerBtn" type="button">Зарегистрироваться</button>
+
+      <div id="verifyBox" class="hidden">
+        <label for="otp">Код из письма</label>
+        <div class="code-row">
+          <input id="otp" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="8">
+          <button id="verifyBtn" type="button">Проверить</button>
+        </div>
+        <button id="resendBtn" class="secondary" type="button">Отправить код ещё раз</button>
+      </div>
+    </section>
+
+    <section id="loginBox" class="hidden">
+      <label for="loginEmail">E-mail</label>
+      <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label for="loginPass">Пароль</label>
+      <input id="loginPass" type="password" autocomplete="current-password" placeholder="Ваш пароль">
+      <button id="loginBtn" type="button">Войти</button>
+    </section>
+
+    <div id="msg" class="msg"></div>
+    <div class="small">После успешной регистрации или входа откроется <b>index.html</b>.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_KEY = 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
+let pendingEmail = '';
+
+const $ = id => document.getElementById(id);
+const msg = (text, type='') => { $('msg').textContent=text; $('msg').className='msg ' + type; };
+
+function goIndex(){ window.location.replace(nextPage === 'auth.html' ? 'index.html' : nextPage); }
+
+async function alreadyLoggedIn(){
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(session) goIndex();
+}
+alreadyLoggedIn();
+
+$('tabRegister').onclick=()=>{
+  $('tabRegister').classList.add('active'); $('tabLogin').classList.remove('active');
+  $('registerBox').classList.remove('hidden'); $('loginBox').classList.add('hidden'); msg('');
+};
+$('tabLogin').onclick=()=>{
+  $('tabLogin').classList.add('active'); $('tabRegister').classList.remove('active');
+  $('loginBox').classList.remove('hidden'); $('registerBox').classList.add('hidden'); msg('');
+};
+
+$('registerBtn').onclick=async()=>{
+  const email=$('regEmail').value.trim().toLowerCase();
+  const password=$('regPass').value;
+  if(!email || !password) return msg('Заполни e-mail и пароль.','error');
+  if(password.length<6) return msg('Пароль должен быть не короче 6 символов.','error');
+
+  $('registerBtn').disabled=true;
+  msg('Отправляем код на почту…');
+  try{
+    const {data,error}=await supabaseClient.auth.signUp({email,password});
+    if(error) throw error;
+    pendingEmail=email;
+    $('verifyBox').classList.remove('hidden');
+    msg('Код отправлен на ' + email + '. Введи его ниже.','success');
+  }catch(e){ msg(e.message || 'Ошибка регистрации.','error'); }
+  finally{$('registerBtn').disabled=false;}
+};
+
+$('verifyBtn').onclick=async()=>{
+  const token=$('otp').value.trim();
+  if(!pendingEmail || !token) return msg('Введи код из письма.','error');
+  $('verifyBtn').disabled=true;
+  msg('Проверяем код…');
+  try{
+    const {data,error}=await supabaseClient.auth.verifyOtp({
+      email:pendingEmail,
+      token,
+      type:'signup'
+    });
+    if(error) throw error;
+    if(!data.session) throw new Error('Код принят, но сессия ещё не создана. Попробуй войти с паролем.');
+    msg('Готово! Открываем сайт…','success');
+    setTimeout(goIndex,400);
+  }catch(e){ msg(e.message || 'Неверный код.','error'); }
+  finally{$('verifyBtn').disabled=false;}
+};
+
+$('resendBtn').onclick=async()=>{
+  if(!pendingEmail) return;
+  $('resendBtn').disabled=true;
+  try{
+    const {error}=await supabaseClient.auth.resend({type:'signup',email:pendingEmail});
+    if(error) throw error;
+    msg('Новый код отправлен на почту.','success');
+  }catch(e){ msg(e.message || 'Не удалось отправить код.','error'); }
+  finally{setTimeout(()=>$('resendBtn').disabled=false,5000);}
+};
+
+$('loginBtn').onclick=async()=>{
+  const email=$('loginEmail').value.trim().toLowerCase();
+  const password=$('loginPass').value;
+  if(!email || !password) return msg('Введи e-mail и пароль.','error');
+  $('loginBtn').disabled=true;
+  msg('Входим…');
+  try{
+    const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    msg('Вход выполнен. Открываем сайт…','success');
+    setTimeout(goIndex,300);
+  }catch(e){ msg(e.message || 'Неверный e-mail или пароль.','error'); }
+  finally{$('loginBtn').disabled=false;}
+};
+</script>
+</body>
+</html>
