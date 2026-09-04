@@ -253,90 +253,11 @@ body{
 .btn-red:not(:disabled){animation:pulseBtn 2s ease infinite;}
 @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
 .car-card.selected .car-name{background:linear-gradient(90deg,var(--bianco),var(--oro),var(--bianco));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 3s linear infinite;}
-
-/* ═══ ACCOUNT ═══ */
-.account-btn{position:fixed;top:14px;right:14px;z-index:70;background:var(--nero-2);border:1px solid var(--nero-3);color:var(--bianco);border-radius:14px;padding:9px 12px;font-family:'Rustico Italiano',cursive;font-size:17px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.25);backdrop-filter:blur(8px);}
-.account-btn:active{transform:scale(.96);}
-.account-modal-back{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.68);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:18px;}
-.account-modal-back.show{display:flex;}
-.account-modal{width:100%;max-width:360px;background:var(--nero-2);border:1px solid var(--nero-3);border-radius:24px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.5);}
-.account-modal h3{font-size:24px;margin-bottom:5px;}
-.account-sub{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:18px;margin-bottom:14px;}
-.auth-tabs{display:flex;gap:7px;margin-bottom:12px;}
-.auth-tab{flex:1;border:1px solid var(--nero-3);background:var(--nero);color:var(--grigio);border-radius:12px;padding:9px;font-family:'Rustico Italiano',cursive;font-size:16px;cursor:pointer;}
-.auth-tab.active{border-color:var(--oro);color:var(--bianco);background:rgba(201,162,39,.12);}
-.auth-small{width:100%;background:var(--nero);border:1px solid var(--nero-3);border-radius:12px;padding:11px 12px;color:var(--bianco);font-size:17px;outline:none;margin-bottom:9px;}
-.auth-small:focus{border-color:var(--oro);}
-.auth-code{letter-spacing:7px;text-align:center;font-weight:800;}
-.auth-note{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:15px;text-align:center;margin:8px 0 12px;}
-.auth-actions{display:flex;gap:8px;}
-.auth-actions .btn{flex:1;}
-
 </style>
 </head>
-
-<!-- VENTA AUTH / SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_PROJECT_URL';
-const SUPABASE_KEY = 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-window.VENTA_USER = null;
-window.VENTA_SUPABASE = supabaseClient;
-
-(async function initAuth(){
-  try{
-    const {data:{session}} = await supabaseClient.auth.getSession();
-    window.VENTA_USER = session?.user || null;
-    window.dispatchEvent(new CustomEvent('venta-auth-ready'));
-  }catch(e){ console.error(e); }
-})();
-
-supabaseClient.auth.onAuthStateChange((_event, session)=>{
-  window.VENTA_USER = session?.user || null;
-  window.dispatchEvent(new CustomEvent('venta-auth-changed',{detail:{user:window.VENTA_USER}}));
-  if(typeof updateAuthButtons==='function') updateAuthButtons();
-});
-
-async function signOutVenta(){
-  await supabaseClient.auth.signOut();
-  closeAccountModal();
-  toast('Вы вышли из аккаунта');
-}
-</script>
-
-
 <body>
+<a href="auth.html" style="position:fixed;top:14px;right:14px;z-index:90;text-decoration:none;background:#1b1b1b;color:#fff;border:1px solid #444;border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.3)">👤 Войти / Регистрация</a>
 
-<button class="account-btn" id="accountBtn" onclick="openAccountModal()">👤 Войти</button>
-
-<div class="account-modal-back" id="accountModalBack" onclick="closeAccountModal()">
-  <div class="account-modal" onclick="event.stopPropagation()">
-    <h3>Аккаунт Venta</h3>
-    <div class="account-sub">Войдите или создайте аккаунт</div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="loginTab" onclick="switchAuthMode('login')">Войти</button>
-      <button class="auth-tab" id="registerTab" onclick="switchAuthMode('register')">Регистрация</button>
-    </div>
-    <div id="authStep1">
-      <input id="authEmail" class="auth-small" type="email" placeholder="E-mail" autocomplete="email">
-      <input id="authPassword" class="auth-small" type="password" placeholder="Пароль" autocomplete="current-password">
-      <div class="auth-note" id="authHint">Для входа нужен e-mail и пароль</div>
-      <div class="auth-actions">
-        <button class="btn btn-green" onclick="submitAuth()">Продолжить</button>
-        <button class="btn btn-gray" onclick="closeAccountModal()">Закрыть</button>
-      </div>
-    </div>
-    <div id="authStep2" style="display:none;">
-      <input id="authCode" class="auth-small auth-code" inputmode="numeric" maxlength="6" placeholder="КОД ИЗ ПИСЬМА">
-      <div class="auth-note">Мы отправили код на твой e-mail. Введи его здесь.</div>
-      <div class="auth-actions">
-        <button class="btn btn-green" onclick="verifyAuthCode()">Подтвердить</button>
-        <button class="btn btn-gray" onclick="backAuthStep()">Назад</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- SPLASH -->
 <div id="splash">
@@ -541,54 +462,13 @@ const SPLASH_TIPS=[
 ];
 
 /* ══════ БАЗА ══════ */
-function save(){
-  try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}
-  cloudSave();
-}
-async function cloudSave(){
-  try{
-    if(!window.VENTA_USER || !window.VENTA_SUPABASE) return;
-    const {error}=await window.VENTA_SUPABASE.from('venta_profiles').upsert({
-      id:window.VENTA_USER.id,
-      email:window.VENTA_USER.email || null,
-      app_state:state,
-      updated_at:new Date().toISOString()
-    });
-    if(error) console.error('Cloud save:', error);
-  }catch(e){console.error('Cloud save:',e);}
-}
-async function load(){
-  try{
-    let loaded=false;
-    if(window.VENTA_USER && window.VENTA_SUPABASE){
-      const {data,error}=await window.VENTA_SUPABASE
-        .from('venta_profiles').select('app_state').eq('id',window.VENTA_USER.id).maybeSingle();
-      if(error) console.error('Cloud load:',error);
-      if(data?.app_state?.passenger && data?.app_state?.driver){
-        state=data.app_state;
-        loaded=true;
-      }
-      if(!loaded){
-        await window.VENTA_SUPABASE.from('venta_profiles').upsert({
-          id:window.VENTA_USER.id,
-          email:window.VENTA_USER.email || null,
-          app_state:state,
-          updated_at:new Date().toISOString()
-        });
-        loaded=true;
-      }
-    }
-    if(!loaded){
-      const r=localStorage.getItem(STORE);
-      if(r){const s=JSON.parse(r);if(s&&s.passenger&&s.driver)state=s;}
-    }
-  }catch(e){console.error('Load:',e);}
-}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}}
+function load(){try{const r=localStorage.getItem(STORE);if(r){const s=JSON.parse(r);if(s&&s.passenger&&s.driver)state=s;}}catch(e){}}
 let toastTimer;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);}
 function money(v){return v + ' ₽';}
 
-window.addEventListener('venta-auth-ready', async function(){
-  await load();
+window.addEventListener('load',function(){
+  load();
   // подсказки на загрузке
   let ti=0;document.getElementById('splashTip').textContent=SPLASH_TIPS[ti];
   setInterval(function(){ti=(ti+1)%SPLASH_TIPS.length;document.getElementById('splashTip').textContent=SPLASH_TIPS[ti];},600);
@@ -1023,85 +903,6 @@ function drawMap(){
 document.getElementById('pickupAddr').addEventListener('input',drawMap);
 document.getElementById('dropAddr').addEventListener('input',drawMap);
 window.addEventListener('load',()=>{setTimeout(drawMap,100);setInterval(drawMap,60);});
-
-/* ═══ АККАУНТ ═══ */
-let authMode='login';
-let authEmailPending='';
-let authStep='main';
-function openAccountModal(){
-  const back=document.getElementById('accountModalBack');
-  back.classList.add('show');
-  updateAuthButtons();
-  const logged=!!window.VENTA_USER;
-  if(logged){
-    document.getElementById('authStep1').innerHTML=`<div class="auth-note" style="margin:8px 0 14px">Вы вошли как<br><b style="color:var(--bianco)">${window.VENTA_USER.email||'пользователь'}</b></div><div class="auth-actions"><button class="btn btn-red" onclick="signOutVenta()">Выйти</button><button class="btn btn-gray" onclick="closeAccountModal()">Закрыть</button></div>`;
-    document.getElementById('authStep2').style.display='none';
-  }
-}
-function closeAccountModal(){
-  document.getElementById('accountModalBack').classList.remove('show');
-}
-function switchAuthMode(mode){
-  if(window.VENTA_USER){ return; }
-  authMode=mode; authStep='main';
-  document.getElementById('authStep1').style.display='block';
-  document.getElementById('authStep2').style.display='none';
-  document.getElementById('loginTab').classList.toggle('active',mode==='login');
-  document.getElementById('registerTab').classList.toggle('active',mode==='register');
-  document.getElementById('authPassword').autocomplete=mode==='register'?'new-password':'current-password';
-  document.getElementById('authHint').textContent=mode==='register'?'После регистрации пришлём код подтверждения на e-mail':'Для входа нужен e-mail и пароль';
-}
-function backAuthStep(){
-  authStep='main';
-  document.getElementById('authStep1').style.display='block';
-  document.getElementById('authStep2').style.display='none';
-}
-async function submitAuth(){
-  const email=document.getElementById('authEmail').value.trim().toLowerCase();
-  const password=document.getElementById('authPassword').value;
-  if(!email || !password){toast('Заполни e-mail и пароль');return;}
-  if(!email.includes('@')){toast('Проверь e-mail');return;}
-  try{
-    if(authMode==='login'){
-      const {error}=await supabaseClient.auth.signInWithPassword({email,password});
-      if(error) throw error;
-      closeAccountModal();
-      toast('✅ Вход выполнен');
-    }else{
-      const {error}=await supabaseClient.auth.signUp({email,password});
-      if(error) throw error;
-      authEmailPending=email;
-      authStep='code';
-      document.getElementById('authStep1').style.display='none';
-      document.getElementById('authStep2').style.display='block';
-      toast('📩 Код отправлен на почту');
-    }
-  }catch(e){
-    console.error(e);
-    toast(e?.message||'Не удалось выполнить действие');
-  }
-}
-async function verifyAuthCode(){
-  const token=document.getElementById('authCode').value.trim();
-  if(!/^\d{6}$/.test(token)){toast('Введи 6-значный код');return;}
-  try{
-    const {error}=await supabaseClient.auth.verifyOtp({email:authEmailPending,token,type:'signup'});
-    if(error) throw error;
-    closeAccountModal();
-    toast('✅ Регистрация завершена');
-  }catch(e){
-    console.error(e);
-    toast(e?.message||'Неверный код');
-  }
-}
-function updateAuthButtons(){
-  const b=document.getElementById('accountBtn');
-  if(!b)return;
-  b.textContent=window.VENTA_USER?'👤 Аккаунт':'👤 Войти';
-}
-window.addEventListener('venta-auth-ready',updateAuthButtons);
-window.addEventListener('venta-auth-changed',updateAuthButtons);
-
 </script>
 </body>
 </html>
