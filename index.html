@@ -316,6 +316,23 @@ button,input{font:inherit;}
   .modal{max-width:none;padding:18px;padding-bottom:calc(20px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;}
   #toast{font-size:16px;padding:10px 14px;}
 }
+
+/* ═══ EMAIL CONFIRMED / PROFILE SETUP ═══ */
+#profileSetupBack{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:18px;}
+#profileSetupBack.show{display:flex;}
+.profile-setup{width:100%;max-width:430px;background:var(--nero-2);border:1px solid var(--nero-3);border-radius:26px;padding:24px;box-shadow:0 25px 80px rgba(0,0,0,.55);}
+.profile-step{text-align:center;}
+.profile-check{width:76px;height:76px;border-radius:50%;margin:4px auto 16px;display:flex;align-items:center;justify-content:center;background:rgba(30,132,73,.18);border:2px solid rgba(30,132,73,.55);font-size:38px;}
+.profile-setup h3{font-size:28px;margin-bottom:7px;}
+.profile-setup .ps-sub{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:19px;line-height:1.35;margin-bottom:20px;}
+.ps-field{text-align:left;margin-top:12px;}
+.ps-field label{display:block;font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:17px;margin:0 0 6px 4px;}
+.ps-field input{width:100%;border:1px solid var(--nero-3);border-radius:14px;background:var(--nero);color:var(--bianco);padding:13px 14px;font-family:'Rustico Italiano',cursive;font-size:20px;outline:none;}
+.ps-field input:focus{border-color:var(--oro);}
+.profile-actions{display:flex;gap:10px;margin-top:18px;}
+.profile-actions .btn{flex:1;}
+.profile-error{min-height:22px;text-align:center;color:#ff8c82;font-family:'Rustico Italiano',cursive;font-size:17px;margin-top:10px;}
+@media(max-width:600px){.profile-setup{padding:20px;border-radius:22px}.profile-setup h3{font-size:25px}.profile-setup .ps-sub{font-size:17px}.ps-field input{font-size:18px}}
 </style>
 </head>
 
@@ -324,6 +341,7 @@ button,input{font:inherit;}
 <script>
 const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_PROJECT_URL';
 const SUPABASE_KEY = 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY';
+const SITE_URL = 'https://limonnyrai.github.io/Venta-Taxi/';
 const AUTH_READY = !!(window.supabase && SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_KEY.startsWith('PASTE_'));
 const supabaseClient = AUTH_READY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 window.VENTA_USER = null;
@@ -340,6 +358,7 @@ async function initVentaAuth(){
     window.VENTA_USER = session?.user || null;
     window.dispatchEvent(new CustomEvent('venta-auth-ready'));
     updateAuthButtons();
+    if(session) setTimeout(showProfileSetupIfNeeded,250);
   }catch(e){
     console.error('Supabase auth:', e);
   }
@@ -357,6 +376,7 @@ if(AUTH_READY){
     window.VENTA_USER=session?.user||null;
     window.dispatchEvent(new CustomEvent('venta-auth-changed',{detail:{user:window.VENTA_USER}}));
     updateAuthButtons();
+    if(session) setTimeout(showProfileSetupIfNeeded,250);
   });
 }
 
@@ -385,7 +405,7 @@ function switchAuthMode(mode){
   document.getElementById('authStep1').style.display='';
   document.getElementById('authStep2').style.display='none';
   document.getElementById('authPassword').autocomplete=mode==='register'?'new-password':'current-password';
-  document.getElementById('authHint').textContent=mode==='register'?'Регистрация: e-mail, пароль и код из письма':'Для входа нужен e-mail и пароль';
+  document.getElementById('authHint').textContent=mode==='register'?'На e-mail придёт ссылка для подтверждения почты':'Для входа нужен e-mail и пароль';
 }
 async function submitAuth(){
   const email=document.getElementById('authEmail').value.trim();
@@ -394,12 +414,12 @@ async function submitAuth(){
   if(!AUTH_READY){toast('Сначала настрой Supabase: вставь URL и ключ');return;}
   try{
     if(authMode==='register'){
-      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:SITE_URL}});
       if(error) throw error;
       authEmail=email;
-      document.getElementById('authStep1').style.display='none';
-      document.getElementById('authStep2').style.display='';
-      toast('Код отправлен на e-mail');
+      document.getElementById('authStep1').style.display='';
+      document.getElementById('authStep2').style.display='none';
+      toast('Письмо отправлено! Перейди по ссылке из письма.');
     }else{
       const {error}=await supabaseClient.auth.signInWithPassword({email,password});
       if(error) throw error;
@@ -418,13 +438,85 @@ async function verifyAuthCode(){
     closeAccountModal();
     updateAuthButtons();
     toast('Аккаунт подтверждён!');
+    setTimeout(showProfileSetupIfNeeded,250);
   }catch(e){toast(e.message||'Неверный код');console.error(e);}
 }
+
 function backAuthStep(){
   document.getElementById('authStep2').style.display='none';
   document.getElementById('authStep1').style.display='';
 }
+
+async function getVentaProfile(){
+  if(!AUTH_READY || !window.VENTA_USER) return null;
+  const {data,error}=await supabaseClient
+    .from('venta_profiles')
+    .select('first_name,last_name,phone')
+    .eq('id',window.VENTA_USER.id)
+    .maybeSingle();
+  if(error){ console.error('Profile read:',error); return null; }
+  return data;
+}
+
+function showProfileSetup(){
+  const back=document.getElementById('profileSetupBack');
+  if(!back) return;
+  back.classList.add('show');
+  document.getElementById('profileConfirmedStep').style.display='';
+  document.getElementById('profileFormStep').style.display='none';
+  document.getElementById('profileError').textContent='';
+}
+
+function showProfileForm(){
+  document.getElementById('profileConfirmedStep').style.display='none';
+  document.getElementById('profileFormStep').style.display='';
+  document.getElementById('profileFirstName').focus();
+}
+
+async function showProfileSetupIfNeeded(){
+  if(!AUTH_READY) return;
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session?.user){ return; }
+  window.VENTA_USER=session.user;
+  const profile=await getVentaProfile();
+  if(!profile || !profile.first_name || !profile.last_name || !profile.phone){
+    showProfileSetup();
+  }
+}
+
+async function saveProfileSetup(){
+  const first=document.getElementById('profileFirstName').value.trim();
+  const last=document.getElementById('profileLastName').value.trim();
+  const phone=document.getElementById('profilePhone').value.trim();
+  const err=document.getElementById('profileError');
+  err.textContent='';
+  if(!first || !last || !phone){ err.textContent='Заполни все поля.'; return; }
+  if(!AUTH_READY || !window.VENTA_USER){ err.textContent='Не удалось определить аккаунт.'; return; }
+  const btn=document.querySelector('#profileFormStep .btn-green');
+  btn.disabled=true;
+  try{
+    const {error}=await supabaseClient.from('venta_profiles').upsert({
+      id:window.VENTA_USER.id,
+      email:window.VENTA_USER.email || null,
+      first_name:first,
+      last_name:last,
+      phone:phone,
+      updated_at:new Date().toISOString()
+    },{onConflict:'id'});
+    if(error) throw error;
+    document.getElementById('profileSetupBack').classList.remove('show');
+    toast('Профиль сохранён! Добро пожаловать 👋');
+    updateAuthButtons();
+  }catch(e){
+    console.error('Profile save:',e);
+    err.textContent=e.message || 'Не удалось сохранить профиль.';
+  }finally{ btn.disabled=false; }
+}
+
+window.addEventListener('hashchange',()=>setTimeout(showProfileSetupIfNeeded,250));
+
 window.addEventListener('load',initVentaAuth);
+window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
 </script>
 
 
@@ -450,13 +542,9 @@ window.addEventListener('load',initVentaAuth);
       </div>
     </div>
     <div id="authStep2" style="display:none;">
-      <input id="authCode" class="auth-small auth-code" inputmode="numeric" maxlength="6" placeholder="КОД ИЗ ПИСЬМА">
-      <div class="auth-note">Мы отправили код на твой e-mail. Введи его здесь.</div>
-      <div class="auth-actions">
-        <button class="btn btn-green" onclick="verifyAuthCode()">Подтвердить</button>
-        <button class="btn btn-gray" onclick="backAuthStep()">Назад</button>
-      </div>
+      <div class="auth-note">Открой письмо от Supabase и нажми кнопку подтверждения. После этого откроется Venta Taxi.</div>
     </div>
+div>
   </div>
 </div>
 
