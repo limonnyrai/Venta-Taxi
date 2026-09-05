@@ -274,6 +274,57 @@ body{
 .auth-actions .btn{flex:1;}
 
 
+
+/* ═══ VENTA FEATURES ═══ */
+.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0 14px;}
+.feature-btn{background:var(--nero-2);border:1px solid var(--nero-3);border-radius:16px;color:var(--bianco);padding:12px 10px;text-align:left;cursor:pointer;font-family:'Rustico Italiano',cursive;font-size:16px;line-height:1.15;}
+.feature-btn strong{display:block;font-family:inherit;font-size:17px;color:var(--bianco);margin-bottom:3px;}
+.feature-btn span{color:var(--grigio);font-size:13px;}
+.feature-btn.gold{border-color:rgba(201,162,39,.45);}
+.feature-btn.green{border-color:rgba(30,132,73,.45);}
+.feature-btn.red{border-color:rgba(192,57,43,.5);}
+.saved-list{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.saved-address{display:flex;align-items:center;gap:8px;background:var(--nero);border:1px solid var(--nero-3);border-radius:13px;padding:10px 12px;cursor:pointer;}
+.saved-address .sa-main{flex:1;}
+.saved-address small{display:block;color:var(--grigio);font-family:'Rustico Italiano',cursive;font-size:14px;margin-top:2px;}
+.stops-wrap{display:flex;flex-direction:column;gap:8px;}
+.stop-row{display:flex;gap:6px;align-items:center;}
+.stop-row .input{margin:0;}
+.remove-stop{width:42px;height:42px;border:1px solid var(--nero-3);border-radius:12px;background:var(--nero-2);color:#ff8c82;cursor:pointer;}
+.promo-status{font-family:'Rustico Italiano',cursive;color:var(--verde);font-size:15px;margin-top:6px;min-height:20px;}
+.promo-invalid{color:#ff8c82;}
+.notif-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;}
+.notif-item{background:var(--nero);border:1px solid var(--nero-3);border-radius:14px;padding:11px 12px;}
+.notif-item.unread{border-color:rgba(201,162,39,.45);}
+.notif-item b{display:block;margin-bottom:3px;}
+.notif-item small{color:var(--grigio);font-family:'Rustico Italiano',cursive;}
+.admin-grid,.analytics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.stat-card{background:var(--nero);border:1px solid var(--nero-3);border-radius:14px;padding:12px;}
+.stat-card .value{font-size:25px;color:var(--oro);font-weight:800;}
+.stat-card .label{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:14px;margin-top:2px;}
+.driver-application{background:linear-gradient(150deg,#14281b,#0f1a12);border:1px solid rgba(30,132,73,.45);border-radius:18px;padding:14px;margin-bottom:12px;}
+.application-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.application-row .grow{flex:1;}
+.badge{display:inline-block;padding:4px 8px;border-radius:10px;font-size:12px;background:var(--nero-3);color:var(--grigio);}
+.badge.pending{color:var(--oro);}
+.badge.approved{color:#6bd39a;background:rgba(30,132,73,.15);}
+.badge.rejected{color:#ff8c82;background:rgba(192,57,43,.12);}
+.tip-row{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px;}
+.tip-btn{border:1px solid var(--nero-3);background:var(--nero);color:var(--bianco);border-radius:12px;padding:9px 4px;cursor:pointer;font-family:'Rustico Italiano',cursive;font-size:15px;}
+.split-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.split-person{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--nero);border:1px solid var(--nero-3);border-radius:12px;margin-top:6px;}
+.feature-modal-title{font-size:24px;margin-bottom:4px;}
+.feature-modal-sub{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:16px;margin-bottom:14px;}
+.feature-actions{display:flex;gap:8px;margin-top:12px;}
+.feature-actions .btn{flex:1;}
+@media(max-width:600px){
+  .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .feature-btn{padding:10px 8px;font-size:14px;}
+  .feature-btn strong{font-size:15px;}
+  .admin-grid,.analytics-grid{grid-template-columns:1fr 1fr;}
+  .tip-row{grid-template-columns:repeat(5,minmax(0,1fr));}
+}
+
 /* ═══ МОБИЛЬНАЯ АДАПТАЦИЯ ═══ */
 html,body{width:100%;min-width:0;}
 img,iframe,canvas{max-width:100%;}
@@ -358,6 +409,7 @@ async function initVentaAuth(){
     window.VENTA_USER = session?.user || null;
     window.dispatchEvent(new CustomEvent('venta-auth-ready'));
     updateAuthButtons();
+    refreshAdminVisibility();
     if(session) setTimeout(showProfileSetupIfNeeded,250);
   }catch(e){
     console.error('Supabase auth:', e);
@@ -369,6 +421,11 @@ function updateAuthButtons(){
   if(!btn) return;
   if(window.VENTA_USER) btn.textContent='👤 '+(window.VENTA_USER.email || 'Аккаунт');
   else btn.textContent='👤 Войти';
+  const adminBtn=document.getElementById('accountAdminBtn');
+  const logoutBtn=document.getElementById('accountLogoutBtn');
+  const isAdmin=(window.VENTA_USER?.email||'').toLowerCase()===ADMIN_EMAIL;
+  if(adminBtn)adminBtn.style.display=isAdmin?'block':'none';
+  if(logoutBtn)logoutBtn.style.display=window.VENTA_USER?'block':'none';
 }
 
 if(AUTH_READY){
@@ -394,6 +451,9 @@ function openAccountModal(){
   document.getElementById('accountModalBack').classList.add('show');
   switchAuthMode('login');
   updateAuthButtons();
+  if(window.VENTA_USER){
+    document.getElementById('authHint').textContent='Вы вошли как '+(window.VENTA_USER.email||'пользователь');
+  }
 }
 function closeAccountModal(){
   document.getElementById('accountModalBack').classList.remove('show');
@@ -543,9 +603,35 @@ window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
     </div>
     <div id="authStep2" style="display:none;">
       <div class="auth-note">Открой письмо от Supabase и нажми кнопку подтверждения. После этого откроется Venta Taxi.</div>
+      <button class="btn btn-gray" onclick="backAuthStep()">Назад</button>
     </div>
-div>
+    <button id="accountAdminBtn" class="btn btn-gold" style="display:none;margin-top:10px" onclick="closeAccountModal();openAdminPanel()">🛠️ Админ-панель</button>
+    <button id="accountLogoutBtn" class="btn btn-gray" style="display:none;margin-top:8px" onclick="signOutVenta()">Выйти из аккаунта</button>
   </div>
+</div>
+
+<div id="profileSetupBack">
+  <div class="profile-setup" onclick="event.stopPropagation()">
+    <div id="profileConfirmedStep" class="profile-step">
+      <div class="profile-check">✓</div>
+      <h3>Почта подтверждена</h3>
+      <div class="ps-sub">Отлично! Теперь заполни данные профиля, чтобы пользоваться всеми возможностями Venta Taxi.</div>
+      <button class="btn btn-green" onclick="showProfileForm()">Далее</button>
+    </div>
+    <div id="profileFormStep" class="profile-step" style="display:none;">
+      <h3>Твой профиль</h3>
+      <div class="ps-sub">Имя, фамилия и номер телефона</div>
+      <div class="ps-field"><label>Имя</label><input id="profileFirstName" autocomplete="given-name" placeholder="Алексей"></div>
+      <div class="ps-field"><label>Фамилия</label><input id="profileLastName" autocomplete="family-name" placeholder="Иванов"></div>
+      <div class="ps-field"><label>Номер телефона</label><input id="profilePhone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00"></div>
+      <div class="profile-error" id="profileError"></div>
+      <div class="profile-actions"><button class="btn btn-green" onclick="saveProfileSetup()">Сохранить и продолжить</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="featureModalBack" class="account-modal-back" onclick="closeFeatureModal()">
+  <div class="account-modal" id="featureModalContent" onclick="event.stopPropagation()"></div>
 </div>
 
 <!-- SPLASH -->
@@ -566,9 +652,9 @@ div>
       <div class="rs-info"><h3>Заказчик</h3><p>вызвать такси · откуда → куда · оплата</p><div class="rs-stars">★ 4.9 · пассажир</div></div>
       <div class="rs-arrow">›</div>
     </div>
-    <div class="rs-card driver" onclick="setRole('driver')">
+    <div class="rs-card driver" onclick="openDriverAccess()">
       <div class="rs-ico">🚕</div>
-      <div class="rs-info"><h3>Водитель</h3><p>принять заказ · вести · завершить</p><div class="rs-stars">★ 4.8 · профи</div></div>
+      <div class="rs-info"><h3>Водитель</h3><p>сначала подай заявку и дождись одобрения</p><div class="rs-stars">🚕 Только для одобренных водителей</div></div>
       <div class="rs-arrow">›</div>
     </div>
   </div>
@@ -590,6 +676,15 @@ div>
     <div style="margin-bottom:14px;">
       <div class="input-label"><b>B</b> куда</div>
       <input class="input" id="dropAddr" placeholder="Куда едем?">
+    </div>
+
+    <div class="feature-grid">
+      <button class="feature-btn gold" onclick="openSavedAddresses()"><strong>🏠 Адреса</strong><span>Дом / Работа / новый</span></button>
+      <button class="feature-btn" onclick="openStopsModal()"><strong>➕ Остановки</strong><span>До 3 промежуточных</span></button>
+      <button class="feature-btn gold" onclick="openPromoModal()"><strong>🎟️ Промокод</strong><span>Скидка на поездку</span></button>
+      <button class="feature-btn" onclick="openNotifications()"><strong>🔔 Уведомления</strong><span>События и оценки</span></button>
+      <button class="feature-btn green" onclick="openSplitModal()"><strong>👥 Разделить счёт</strong><span>2–5 человек</span></button>
+      <button class="feature-btn red" onclick="openAccountModal()"><strong>👤 Профиль</strong><span>Аккаунт и настройки</span></button>
     </div>
 
     <div class="map-wrap">
@@ -698,6 +793,20 @@ const STORE='venta_taxi_deluxe';
 let state={passenger:{orders:[],history:[]},driver:{available:false,orders:[],active:null,history:[]}};
 let currentRole=null,passengerTab='new',driverTab='orders';
 let selCar=null,selDispatch='now',selReqs=[],selTreats=[],wheel;
+let promoState={code:null,discount:0,label:null};
+let routeStops=[];
+let savedAddresses=[];
+let splitState={count:1,members:[]};
+let notifications=[];
+let driverApproved=false;
+const ADMIN_EMAIL='jony.oficcial@mail.ru';
+const PROMOS={
+  VENTA20:{type:'percent',value:20,label:'−20%'},
+  VIP50:{type:'percent',value:50,label:'−50%'},
+  PREMIUM100:{type:'fixed',value:100,label:'−100 ₽'},
+  NEWUSER:{type:'percent',value:15,label:'−15%'},
+  DELUXE:{type:'percent',value:30,label:'−30%'}
+};
 
 const CARS=[
   {id:'econ', ico:'🚗',name:'Эконом',  base:99,  perKm:22, desc:'бюджетно и быстро', seat:4},
@@ -707,6 +816,7 @@ const CARS=[
   {id:'delux',ico:'🚖',name:'Делюкс',base:349, perKm:60, desc:'люкс, VIP', seat:3},
   {id:'eco',  ico:'⚡',name:'Eco',    base:119, perKm:25, desc:'электро, эко', seat:4},
   {id:'speed',ico:'🏎️',name:'Спорт', base:299, perKm:55, desc:'быстро и драйв', seat:2},
+  {id:'limousine',ico:'🚘',name:'Лимузин',base:999,perKm:95,desc:'максимум роскоши · VIP',seat:6},
 ];
 
 const DISPATCH=[
@@ -812,11 +922,45 @@ function showRoleSel(){
   document.getElementById('appPassenger').classList.remove('show');
   document.getElementById('appDriver').classList.remove('show');
   document.getElementById('roleSel').classList.add('show');
+  refreshDriverCard();
 }
 function setRole(role){
+  if(role==='driver' && !driverApproved){openDriverAccess();return;}
   currentRole=role;document.getElementById('roleSel').classList.remove('show');
   if(role==='passenger'){document.getElementById('appPassenger').classList.add('show');renderPassenger();}
-  else{document.getElementById('appDriver').classList.add('show');renderDriver();}
+  else{document.getElementById('appDriver').classList.add('show');renderDriver();renderDriverAnalytics();}
+}
+function refreshDriverCard(){
+  const card=document.querySelector('#roleSel .rs-card.driver');
+  if(!card)return;
+  if(driverApproved){
+    card.onclick=()=>setRole('driver');
+    card.querySelector('h3').textContent='Водитель';
+    card.querySelector('p').textContent='принять заказ · вести · завершить';
+    card.querySelector('.rs-stars').textContent='✓ Заявка одобрена';
+  }else{
+    card.onclick=()=>openDriverAccess();
+    card.querySelector('h3').textContent='Водитель';
+    card.querySelector('p').textContent='подай заявку на работу водителем';
+    card.querySelector('.rs-stars').textContent='🚕 Только для одобренных водителей';
+  }
+}
+function openDriverAccess(){
+  if(!window.VENTA_USER){
+    openAccountModal();
+    toast('Сначала зарегистрируйся или войди в аккаунт');
+    return;
+  }
+  if(driverApproved){ setRole('driver'); return; }
+  openFeatureModal('Заявка водителя',`
+    <div class="feature-modal-title">🚕 Стать водителем</div>
+    <div class="feature-modal-sub">Водительский режим откроется только после одобрения заявки администратором.</div>
+    <input id="driverCarInfo" class="auth-small" placeholder="Автомобиль и госномер">
+    <input id="driverCity" class="auth-small" placeholder="Город">
+    <div class="auth-note">Заявка будет привязана к твоему зарегистрированному профилю.</div>
+    <div class="feature-actions"><button class="btn btn-green" onclick="submitDriverApplication()">Подать заявку</button><button class="btn btn-gray" onclick="closeFeatureModal()">Отмена</button></div>
+  `);
+  loadDriverApplicationStatus();
 }
 
 /* ══════ МАШИНЫ / ТИПЫ / ПРОСЬБЫ / УГОЩЕНИЕ ══════ */
@@ -868,6 +1012,7 @@ function spinWheel(){
     const p=wheelPrizes[Math.floor(Math.random()*wheelPrizes.length)];
     wheel={disc:p.v,label:p.t};
     el.textContent='🎉 '+p.t+' на поездку!';
+    addNotification('🎡 Рулетка',p.t+' на поездку');
     renderPrice();
   },700);
 }
@@ -879,10 +1024,16 @@ function calcPrice(){
   let fare=car.base+Math.round(km*car.perKm);
   const reqsCost=selReqs.reduce((s,r)=>s+(REQUESTS.find(x=>x.id===r)?.price||0),0);
   const treatsCost=selTreats.reduce((s,t)=>s+(TREATS.find(x=>x.id===t)?.price||0),0);
-  let total=fare+reqsCost+treatsCost;
+  let subtotal=fare+reqsCost+treatsCost;
   let disc=0;
-  if(wheel){disc=Math.round(total*(1-wheel.disc));total=disc;}
-  return {car,km,fare,reqsCost,treatsCost,total,disc};
+  if(wheel) disc += Math.round(subtotal*(1-wheel.disc));
+  if(promoState.discount){
+    const p=promoState;
+    if(p.type==='percent') disc += Math.round(subtotal*(p.discount/100));
+    else if(p.type==='fixed') disc += Math.min(subtotal,p.discount);
+  }
+  const total=Math.max(0,subtotal-disc);
+  return {car,km,fare,reqsCost,treatsCost,total,disc,subtotal};
 }
 let estDistCache=null;
 function estimateDistance(){if(estDistCache===null)estDistCache=2+Math.random()*23;return estDistCache;}
@@ -898,7 +1049,9 @@ function renderPrice(){
   detail+=`<div class="price-line"><span>${km.toFixed(1).replace('.',',')} км по ${car.perKm} ₽</span><b>${money(fare)}</b></div>`;
   if(reqsCost)detail+=`<div class="price-line"><span>Просьбы</span><b>+${money(reqsCost)}</b></div>`;
   if(treatsCost)detail+=`<div class="price-line"><span>Угощение</span><b>+${money(treatsCost)}</b></div>`;
-  if(disc){detail+=`<div class="price-line" style="color:var(--verde)"><span>Рулетка</span><b>−${money(disc)}</b></div>`;}
+  if(routeStops.length){detail+=`<div class="price-line"><span>Остановки</span><b>${routeStops.length}</b></div>`;}
+  if(wheel){detail+=`<div class="price-line" style="color:var(--verde)"><span>Рулетка</span><b>−${wheel.label}</b></div>`;}
+  if(promoState.code){detail+=`<div class="price-line" style="color:var(--verde)"><span>${promoState.code}</span><b>−${promoState.label}</b></div>`;}
   document.getElementById('priceDetail').innerHTML=detail;
   const btn=document.getElementById('orderBtn');
   btn.disabled=!(document.getElementById('pickupAddr').value.trim()&&document.getElementById('dropAddr').value.trim());
@@ -923,14 +1076,16 @@ function placeOrder(){
     id,from,to,km,money:total,status:'pending',
     time:new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
     car:car.name,carIco:car.ico,driver:drv, reqs:selReqs.slice(), treats:selTreats.slice(),
-    dispatch:selDispatch, disc:wheel?wheel.label:null,
+    dispatch:selDispatch, disc:wheel?wheel.label:null, promo:promoState.code||null, promoLabel:promoState.label||null,
+    stops:routeStops.slice(), splitCount:splitState.count||1, splitMembers:splitState.members.slice(), tips:0,
   };
   state.passenger.orders.unshift(order);
   state.driver.orders.unshift({...order,status:'pending',seen:false});
   save();
   document.getElementById('pickupAddr').value='';document.getElementById('dropAddr').value='';
-  selReqs=[];selTreats=[];wheel=null;resetEstimate();initReqs();initTreats();renderPrice();
+  selReqs=[];selTreats=[];wheel=null;promoState={code:null,discount:0,label:null};routeStops=[];splitState={count:1,members:[]};resetEstimate();initReqs();initTreats();renderPrice();
   renderPassengerRide(order);showPassengerTab('ride');
+  addNotification('Новый заказ','Поездка '+id+' создана');
   toast('🚕 Машина подана: '+id);
 }
 
@@ -971,6 +1126,10 @@ function renderPassengerRide(force){
       ${active.reqs&&active.reqs.length?'<div style="margin-top:10px;border-top:1px dashed var(--nero-3);padding-top:8px;font-family:\'Rustico Italiano\',cursive;font-size:18px;color:var(--grigio)">Просьбы: '+active.reqs.map(r=>REQUESTS.find(x=>x.id===r)?.ico||'').join(' ')+'</div>':''}
       ${active.treats&&active.treats.length?'<div style="margin-top:6px;font-family:\'Rustico Italiano\',cursive;font-size:18px;color:var(--grigio)">Угощение водителю: '+active.treats.map(t=>TREATS.find(x=>x.id===t)?.ico||'').join(' ')+'</div>':''}
       ${active.disc?'<div style="margin-top:6px;font-family:\'Rustico Italiano\',cursive;font-size:18px;color:var(--verde)">🎡 Скидка рулетки: '+active.disc+'</div>':''}
+      ${active.promo?'<div style="margin-top:6px;font-family:\'Rustico Italiano\',cursive;font-size:18px;color:var(--verde)">🎟️ Промокод: '+active.promo+' '+(active.promoLabel||'')+'</div>':''}
+      ${active.stops&&active.stops.length?'<div style="margin-top:6px;font-family:\'Rustico Italiano\',cursive;font-size:17px;color:var(--grigio)">📍 Остановки: '+active.stops.map(s=>escapeHtml(s)).join(' → ')+'</div>':''}
+      ${active.splitCount>1?'<div style="margin-top:6px;font-family:\'Rustico Italiano\',cursive;font-size:17px;color:var(--grigio)">👥 Счёт на '+active.splitCount+' человек</div>':''}
+      ${(active.tips||0)?'<div style="margin-top:6px;font-family:\'Rustico Italiano\',cursive;font-size:17px;color:#6bd39a">💛 Чаевые: '+active.tips+' ₽</div>':''}
     </div>
     ${active.status!=='done'?`
       <div class="section-title">ваш водитель</div>
@@ -985,7 +1144,8 @@ function renderPassengerRide(force){
           <button class="btn btn-gray" style="flex:1;font-size:16px;padding:12px;" onclick="openModal('Чат с водителем','<div class=\'handwriting\' style=\'font-size:22px;color:var(--grigio)\'>(демо) напиши водителю</div>')">💬 Чат</button>
         </div>
       </div>
-      <button class="btn btn-red" onclick="cancelRide('${active.id}')">Отменить поездку</button>
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gold" style="flex:1" onclick="openTipModal('${active.id}')">💛 Чаевые</button><button class="btn btn-red" style="flex:1" onclick="openSOS('${active.id}')">🆘 SOS</button></div>
+      <button class="btn btn-red" style="margin-top:8px" onclick="cancelRide('${active.id}')">Отменить поездку</button>
       <div style="margin-top:12px"><button class="btn btn-gold" onclick="surprise('map')">🎲 Показать маршрут на карте</button></div>
     `:`${showRating?`
       <div class="price-card">
@@ -1007,7 +1167,7 @@ function renderPassengerRide(force){
 }
 function rateRide(id,stars){
   const o=state.passenger.orders.find(x=>x.id===id);o.rated=true;o.stars=stars;
-  save();toast('Спасибо! ⭐'.repeat(stars));renderPassenger();showPassengerTab('hist');
+  save(); addNotification('Оценка поездки','Ты поставил оценку '+stars+' ⭐'); toast('Спасибо! ⭐'.repeat(stars));renderPassenger();showPassengerTab('hist');
 }
 function quickRate(id,tag){toast(tag+' — отметили!');}
 function skipRate(id){const o=state.passenger.orders.find(x=>x.id===id);o.rated=true;save();toast('Окей!');showPassengerTab('hist');}
@@ -1080,6 +1240,7 @@ function renderDriver(){
       <button class="btn btn-green" style="margin-top:12px" onclick="acceptOrder('${o.id}')">Принять заказ</button>
     </div>`;}).join('');}
   renderDriverRide();
+  refreshDriverAnalyticsButton();
 }
 function renderDriverRide(){
   const o=state.driver.active;const c=document.getElementById('driverRideContent');
@@ -1103,6 +1264,164 @@ function renderDriverRide(){
       :'<div style="text-align:center;font-family:\'Rustico Italiano\',cursive;font-size:24px;color:#6bd39a">Grazie, buona corsa! 🏁</div>'}
   `;
 }
+
+/* ══════ VENTA FEATURES ══════ */
+function openFeatureModal(titleHtml){
+  const box=document.getElementById('featureModalContent');
+  box.innerHTML=titleHtml;
+  document.getElementById('featureModalBack').classList.add('show');
+}
+function closeFeatureModal(){document.getElementById('featureModalBack').classList.remove('show');}
+function addNotification(title,text,unread=true){
+  notifications.unshift({title,text,time:new Date().toLocaleString('ru-RU',{hour:'2-digit',minute:'2-digit'}),unread});
+  notifications=notifications.slice(0,30);
+  try{localStorage.setItem('venta_notifications',JSON.stringify(notifications));}catch(e){}
+}
+function loadFeatureLocal(){
+  try{
+    savedAddresses=JSON.parse(localStorage.getItem('venta_saved_addresses')||'[]');
+    notifications=JSON.parse(localStorage.getItem('venta_notifications')||'[]');
+  }catch(e){savedAddresses=[];notifications=[];}
+}
+function openSavedAddresses(){
+  const items=savedAddresses.map((a,i)=>`<div class="saved-address" onclick="useSavedAddress(${i})"><div>${a.icon}</div><div class="sa-main"><b>${escapeHtml(a.name)}</b><small>${escapeHtml(a.address)}</small></div><button class="remove-stop" onclick="event.stopPropagation();deleteSavedAddress(${i})">×</button></div>`).join('');
+  openFeatureModal(`
+    <div class="feature-modal-title">🏠 Сохранённые адреса</div>
+    <div class="feature-modal-sub">Дом и Работа можно вставлять одним нажатием.</div>
+    <div class="saved-list">${items||'<div class="auth-note">Пока нет сохранённых адресов.</div>'}</div>
+    <div class="feature-actions"><button class="btn btn-gold" onclick="saveCurrentAddress('Дом','🏠')">Сохранить как Дом</button><button class="btn btn-gray" onclick="saveCurrentAddress('Работа','💼')">Сохранить как Работа</button></div>
+    <button class="btn btn-green" style="margin-top:8px" onclick="saveNewCustomAddress()">＋ Сохранить новый адрес</button>
+  `);
+}
+function saveCurrentAddress(name,icon){
+  const value=document.getElementById('pickupAddr').value.trim();
+  if(!value){toast('Сначала впиши адрес в «Откуда»');return;}
+  savedAddresses=savedAddresses.filter(x=>x.name!==name);
+  savedAddresses.push({name,icon,address:value});
+  localStorage.setItem('venta_saved_addresses',JSON.stringify(savedAddresses));
+  toast(name+' сохранён'); openSavedAddresses();
+}
+function saveNewCustomAddress(){
+  const address=prompt('Введите новый адрес');
+  if(!address)return;
+  const name=prompt('Название (например, Школа)')||'Место';
+  savedAddresses.push({name,icon:'📍',address:address.trim()});
+  localStorage.setItem('venta_saved_addresses',JSON.stringify(savedAddresses));
+  toast('Адрес сохранён'); openSavedAddresses();
+}
+function useSavedAddress(i){
+  const a=savedAddresses[i]; if(!a)return;
+  document.getElementById('pickupAddr').value=a.address; renderPrice(); closeFeatureModal(); toast(a.name+' выбран');
+}
+function deleteSavedAddress(i){savedAddresses.splice(i,1);localStorage.setItem('venta_saved_addresses',JSON.stringify(savedAddresses));openSavedAddresses();}
+function openStopsModal(){
+  renderStopsModal();
+}
+function renderStopsModal(){
+  const rows=routeStops.map((s,i)=>`<div class="stop-row"><input class="input" id="stopInput${i}" value="${escapeAttr(s)}" placeholder="Промежуточная точка ${i+1}"><button class="remove-stop" onclick="removeStop(${i})">×</button></div>`).join('');
+  openFeatureModal(`<div class="feature-modal-title">➕ Остановки</div><div class="feature-modal-sub">Добавь максимум 3 промежуточные точки маршрута.</div><div class="stops-wrap">${rows}</div>${routeStops.length<3?'<button class="btn btn-gray" style="margin-top:10px" onclick="addStop()">＋ Добавить остановку</button>':''}<div class="feature-actions"><button class="btn btn-green" onclick="saveStopsModal()">Сохранить</button><button class="btn btn-gray" onclick="closeFeatureModal()">Отмена</button></div>`);
+}
+function addStop(){ if(routeStops.length>=3)return; routeStops.push(''); renderStopsModal(); }
+function removeStop(i){routeStops.splice(i,1);renderStopsModal();}
+function saveStopsModal(){ routeStops=routeStops.map((_,i)=>document.getElementById('stopInput'+i)?.value.trim()||'').filter(Boolean); if(routeStops.length>3)routeStops=routeStops.slice(0,3); closeFeatureModal(); renderPrice(); toast(routeStops.length?('Остановок: '+routeStops.length):'Остановки очищены'); }
+function openPromoModal(){
+  openFeatureModal(`<div class="feature-modal-title">🎟️ Промокод</div><div class="feature-modal-sub">Доступны: VENTA20, VIP50, PREMIUM100, NEWUSER, DELUXE.</div><input id="promoInput" class="auth-small" placeholder="Введите промокод" value="${promoState.code||''}" oninput="this.value=this.value.toUpperCase()"><div id="promoStatus" class="promo-status"></div><div class="feature-actions"><button class="btn btn-gold" onclick="applyPromoFromModal()">Применить</button><button class="btn btn-gray" onclick="clearPromo()">Сбросить</button></div>`);
+}
+function applyPromoFromModal(){
+  const code=(document.getElementById('promoInput')?.value||'').trim().toUpperCase(); const p=PROMOS[code]; const status=document.getElementById('promoStatus');
+  if(!p){promoState={code:null,discount:0,label:null,type:null};status.className='promo-status promo-invalid';status.textContent='Промокод не найден';renderPrice();return;}
+  promoState={code,discount:p.value,label:p.label,type:p.type}; status.className='promo-status';status.textContent='Применено: '+p.label; addNotification('Промокод применён',code+' — '+p.label); renderPrice();
+}
+function clearPromo(){promoState={code:null,discount:0,label:null,type:null};renderPrice();closeFeatureModal();toast('Промокод удалён');}
+function openNotifications(){
+  notifications.forEach(n=>n.unread=false);localStorage.setItem('venta_notifications',JSON.stringify(notifications));
+  const body=notifications.length?notifications.map(n=>`<div class="notif-item ${n.unread?'unread':''}"><b>${escapeHtml(n.title)}</b><div>${escapeHtml(n.text)}</div><small>${escapeHtml(n.time||'')}</small></div>`).join(''):'<div class="auth-note">Пока нет событий.</div>';
+  openFeatureModal(`<div class="feature-modal-title">🔔 Уведомления</div><div class="feature-modal-sub">Заказы, рулетка, оценки и события аккаунта.</div><div class="notif-list">${body}</div>`);
+}
+function openSplitModal(){
+  if(!window.VENTA_USER){toast('Для разделения счёта войди в аккаунт');openAccountModal();return;}
+  splitState.count=Math.min(5,Math.max(1,splitState.count||1));
+  openFeatureModal(`<div class="feature-modal-title">👥 Разделить счёт</div><div class="feature-modal-sub">Выберите от 2 до 5 зарегистрированных профилей.</div><div class="split-row"><span>Людей:</span><select id="splitCount" class="auth-small" style="margin:0" onchange="renderSplitMembers()">${[2,3,4,5].map(n=>`<option value="${n}" ${splitState.count===n?'selected':''}>${n}</option>`).join('')}</select></div><div id="splitMembers"></div><div class="feature-actions"><button class="btn btn-green" onclick="saveSplit()">Сохранить</button><button class="btn btn-gray" onclick="closeFeatureModal()">Отмена</button></div>`);
+  renderSplitMembers();
+}
+async function renderSplitMembers(){
+  const c=document.getElementById('splitMembers'); if(!c)return;
+  splitState.count=Number(document.getElementById('splitCount')?.value||splitState.count||2);
+  if(!AUTH_READY){c.innerHTML='<div class="auth-note">Нужна настроенная база Supabase.</div>';return;}
+  c.innerHTML='<div class="auth-note">Загрузка профилей…</div>';
+  try{
+    const {data,error}=await supabaseClient.rpc('venta_list_profiles');
+    if(error)throw error;
+    const others=(data||[]).filter(x=>x.id!==window.VENTA_USER.id);
+    c.innerHTML='';
+    for(let i=0;i<splitState.count-1;i++){
+      const opts=others.map(u=>`<option value="${escapeAttr(u.id)}">${escapeHtml((u.first_name||'')+' '+(u.last_name||'')).trim()||escapeHtml(u.email||'Профиль')}</option>`).join('');
+      c.insertAdjacentHTML('beforeend',`<div class="split-person"><span>Участник ${i+2}</span><select class="auth-small split-member" style="width:70%;margin:0" data-index="${i}"><option value="">Не выбран</option>${opts}</select></div>`);
+    }
+  }catch(e){c.innerHTML='<div class="auth-note">Не удалось загрузить зарегистрированные профили.</div>';console.error(e);}
+}
+function saveSplit(){
+  const members=[...document.querySelectorAll('.split-member')].map(s=>s.value).filter(Boolean);
+  splitState.members=members; splitState.count=members.length+1; closeFeatureModal(); renderPrice(); addNotification('Разделение счёта','Поездка будет разделена на '+splitState.count+' человек.'); toast('Счёт разделён на '+splitState.count); }
+function addTipToRide(id,amount){
+  const o=state.passenger.orders.find(x=>x.id===id); if(!o)return;
+  o.tips=(o.tips||0)+amount; save(); addNotification('Чаевые водителю','Добавлено '+amount+' ₽'); toast('Спасибо! Чаевые '+amount+' ₽'); renderPassengerRide(o);
+}
+function openTipModal(id){
+  openFeatureModal(`<div class="feature-modal-title">💛 Чаевые водителю</div><div class="feature-modal-sub">Поблагодари водителя бонусом от 50 до 500 ₽.</div><div class="tip-row">${[50,100,200,300,500].map(v=>`<button class="tip-btn" onclick="addTipToRide('${escapeAttr(id)}',${v});closeFeatureModal()">${v} ₽</button>`).join('')}</div>`);
+}
+function openSOS(id){
+  openFeatureModal(`<div class="feature-modal-title">🆘 SOS</div><div class="feature-modal-sub">Экстренная функция во время активной поездки.</div><button class="btn btn-red" onclick="confirmSOS('${escapeAttr(id)}')">Позвонить в экстренную службу</button><button class="btn btn-gray" style="margin-top:8px" onclick="closeFeatureModal()">Отмена</button>`);
+}
+function confirmSOS(id){ addNotification('SOS','Запрос экстренной помощи по поездке '+id); closeFeatureModal(); toast('🆘 Экстренный вызов отправлен'); }
+async function loadDriverApplicationStatus(){
+  if(!AUTH_READY||!window.VENTA_USER)return;
+  try{const {data}=await supabaseClient.from('driver_applications').select('status').eq('user_id',window.VENTA_USER.id).maybeSingle(); driverApproved=data?.status==='approved'; refreshDriverCard(); refreshDriverAnalyticsButton();}catch(e){console.error(e);}
+}
+async function submitDriverApplication(){
+  if(!AUTH_READY||!window.VENTA_USER){toast('Войди в аккаунт');return;}
+  const car=(document.getElementById('driverCarInfo')?.value||'').trim(), city=(document.getElementById('driverCity')?.value||'').trim();
+  if(!car||!city){toast('Заполни автомобиль и город');return;}
+  try{
+    const {error}=await supabaseClient.from('driver_applications').upsert({user_id:window.VENTA_USER.id,email:window.VENTA_USER.email,car_info:car,city,status:'pending',updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    if(error)throw error; addNotification('Заявка водителя','Заявка отправлена администратору.'); closeFeatureModal(); toast('Заявка отправлена ✅');
+  }catch(e){console.error(e);toast(e.message||'Не удалось отправить заявку');}
+}
+async function openAdminPanel(){
+  if((window.VENTA_USER?.email||'').toLowerCase()!==ADMIN_EMAIL)return;
+  if(!AUTH_READY){toast('Сначала настрой Supabase');return;}
+  openFeatureModal(`<div class="feature-modal-title">🛠️ Админ-панель Venta</div><div class="feature-modal-sub">Принятие заявок водителей</div><div id="adminApplications">Загрузка…</div>`);
+  try{
+    const {data,error}=await supabaseClient.from('driver_applications').select('id,user_id,email,car_info,city,status,created_at').order('created_at',{ascending:false});
+    if(error)throw error;
+    const rows=(data||[]).map(a=>`<div class="driver-application"><div class="application-row"><div class="grow"><b>${escapeHtml(a.email||'')}</b><div style="color:var(--grigio);font-family:'Rustico Italiano',cursive;font-size:14px">${escapeHtml(a.city||'')} · ${escapeHtml(a.car_info||'')}</div></div><span class="badge ${escapeHtml(a.status||'pending')}">${escapeHtml(a.status||'pending')}</span></div><div class="feature-actions">${a.status!=='approved'?`<button class="btn btn-green" onclick="setDriverApplication('${escapeAttr(a.user_id)}','approved')">Принять</button>`:''}${a.status!=='rejected'?`<button class="btn btn-red" onclick="setDriverApplication('${escapeAttr(a.user_id)}','rejected')">Отклонить</button>`:''}</div></div>`).join('');
+    document.getElementById('adminApplications').innerHTML=rows||'<div class="auth-note">Заявок пока нет.</div>';
+  }catch(e){document.getElementById('adminApplications').innerHTML='<div class="auth-note">Ошибка загрузки заявок.</div>';console.error(e);}
+}
+async function setDriverApplication(userId,status){
+  if((window.VENTA_USER?.email||'').toLowerCase()!==ADMIN_EMAIL)return;
+  try{const {error}=await supabaseClient.from('driver_applications').update({status,updated_at:new Date().toISOString()}).eq('user_id',userId);if(error)throw error; toast(status==='approved'?'Водитель принят':'Заявка отклонена'); openAdminPanel();}catch(e){console.error(e);toast(e.message||'Ошибка');}
+}
+function openAnalytics(){
+  if(!driverApproved){toast('Раздел доступен только одобренным водителям');return;}
+  const history=state.driver.history||[]; const tips=history.reduce((s,o)=>s+(o.tips||0),0); const earnings=history.reduce((s,o)=>s+(o.money||0),0)+tips;
+  openFeatureModal(`<div class="feature-modal-title">📊 Аналитика водителя</div><div class="feature-modal-sub">Ваши показатели и история.</div><div class="analytics-grid"><div class="stat-card"><div class="value">${earnings} ₽</div><div class="label">Заработок</div></div><div class="stat-card"><div class="value">${tips} ₽</div><div class="label">Чаевые</div></div><div class="stat-card"><div class="value">★ 4.9</div><div class="label">Рейтинг</div></div><div class="stat-card"><div class="value">${history.length}</div><div class="label">Поездок</div></div></div><div class="section-title" style="margin-left:0;margin-right:0">История</div>${history.length?history.map(o=>`<div class="split-person"><span>${escapeHtml(o.from)} → ${escapeHtml(o.to)}</span><b>${o.money} ₽</b></div>`).join(''):'<div class="auth-note">История пуста.</div>'}`);
+}
+function refreshAdminVisibility(){
+  let btn=document.getElementById('adminBtn');
+  if(!btn){
+    const host=document.querySelector('#appPassenger .topbar .tb-right');
+    if(host){btn=document.createElement('div');btn.id='adminBtn';btn.className='tb-btn';btn.textContent='🛠️';btn.onclick=openAdminPanel;host.appendChild(btn);}
+  }
+  if(btn)btn.style.display=((window.VENTA_USER?.email||'').toLowerCase()===ADMIN_EMAIL)?'flex':'none';
+}
+function refreshDriverAnalyticsButton(){
+  let btn=document.getElementById('analyticsBtn');
+  if(!btn){const host=document.querySelector('#appDriver .topbar .tb-right');if(host){btn=document.createElement('div');btn.id='analyticsBtn';btn.className='tb-btn';btn.textContent='📊';btn.onclick=openAnalytics;host.appendChild(btn);}}
+  if(btn)btn.style.display=driverApproved?'flex':'none';
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
+function escapeAttr(v){return escapeHtml(v).replace(/`/g,'&#96;');}
 
 /* ══════ УТИЛИТЫ ══════ */
 function openModal(title,html){
