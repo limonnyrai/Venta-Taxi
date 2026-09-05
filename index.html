@@ -416,10 +416,13 @@ body{transition:background .25s,color .25s;}
 .profile-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}.profile-mini .stat-card{padding:10px}.profile-mini .value{font-size:22px}
 .tracking-card{background:linear-gradient(135deg,rgba(51,136,255,.14),rgba(30,132,73,.08));border:1px solid rgba(51,136,255,.35);border-radius:20px;padding:14px;margin-bottom:12px;overflow:hidden}
 .tracking-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.tracking-title{font-weight:800;font-size:18px}.tracking-eta{color:#3388ff;font-weight:900;font-size:20px}.tracking-sub{font-size:13px;color:var(--grigio);margin-top:4px}.tracking-road{position:relative;height:12px;background:rgba(128,128,128,.22);border-radius:99px;margin:15px 0 8px;overflow:visible}.tracking-road i{position:absolute;top:-7px;width:26px;height:26px;border-radius:50%;background:#3388ff;box-shadow:0 0 0 5px rgba(51,136,255,.18);transform:translateX(-50%);transition:left 1s linear}.tracking-road::after{content:'🚕';position:absolute;top:-14px;left:var(--car-left,40%);transform:translateX(-50%);font-size:25px;transition:left 1s linear}.tracking-points{display:flex;justify-content:space-between;font-size:12px;color:var(--grigio)}
+.payment-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.payment-btn{border:1.5px solid var(--nero-3);background:var(--nero-2);color:var(--bianco);border-radius:14px;padding:11px 8px;font-family:'Noto Sans',sans-serif;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}.payment-btn.selected{border-color:var(--oro);box-shadow:0 0 0 1px rgba(201,162,39,.25);color:var(--oro)}.payment-btn span{font-size:13px}.payment-hint{margin-top:9px;color:var(--grigio);font-size:13px}
+.tracking-map{position:relative;height:270px;border-radius:18px;overflow:hidden;margin-top:12px;background:#ece8dc}.tracking-map img{width:100%;height:100%;object-fit:cover;display:block}.tracking-route{position:absolute;left:12%;right:12%;top:58%;height:6px;background:rgba(51,136,255,.3);border-radius:99px}.tracking-route i{position:absolute;left:var(--car-left,15%);top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;background:#3388ff;border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.28);transform:translateX(-50%);transition:left 1s linear}.tracking-car{position:absolute;left:var(--car-left,15%);top:calc(58% - 24px);font-size:28px;transform:translateX(-50%);transition:left 1s linear;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}.tracking-label{position:absolute;bottom:10px;left:10px;background:rgba(20,20,22,.78);color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;backdrop-filter:blur(5px)}
+
 .review-stars{display:flex;gap:5px;font-size:27px;justify-content:center;margin:10px 0}.review-star{cursor:pointer;opacity:.35}.review-star.active{opacity:1}.review-text{width:100%;min-height:90px;resize:vertical}
 .favorite-driver{display:flex;align-items:center;gap:10px;padding:10px;background:var(--nero);border:1px solid var(--nero-3);border-radius:14px;margin-top:8px}.favorite-driver .grow{flex:1}.heart-btn{border:1px solid var(--nero-3);background:var(--nero-2);color:#ff6b6b;border-radius:11px;padding:8px;cursor:pointer}
 .support-msg{padding:9px 11px;border-radius:13px;margin:6px 0;max-width:85%;background:var(--nero);border:1px solid var(--nero-3)}.support-msg.me{margin-left:auto;background:rgba(30,132,73,.12);border-color:rgba(30,132,73,.35)}
-@media(max-width:600px){.lang-modal{padding:18px}.lang-list{grid-template-columns:1fr 1fr}.tracking-eta{font-size:18px}.account-extra{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.lang-modal{padding:18px}.lang-list{grid-template-columns:1fr 1fr}.tracking-eta{font-size:18px}.account-extra{grid-template-columns:1fr 1fr}.payment-row{grid-template-columns:1fr 1fr 1fr}.payment-btn{padding:9px 5px;font-size:13px}.tracking-map{height:220px}}
 </style>
 </head>
 
@@ -768,6 +771,16 @@ window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
       <div class="price-detail" id="priceDetail"></div>
     </div>
 
+    <div class="price-card payment-card" style="margin-top:14px;">
+      <div class="input-label" style="margin:0 0 10px;">💳 Способ оплаты</div>
+      <div class="payment-row" id="paymentRow">
+        <button type="button" class="payment-btn" data-pay="card" onclick="selectPaymentMethod('card')">💳<span>Карта</span></button>
+        <button type="button" class="payment-btn selected" data-pay="cash" onclick="selectPaymentMethod('cash')">💵<span>Наличные</span></button>
+        <button type="button" class="payment-btn" data-pay="sbp" onclick="selectPaymentMethod('sbp')">📱<span>СБП</span></button>
+      </div>
+      <div id="paymentHint" class="payment-hint">Оплата наличными водителю после поездки</div>
+    </div>
+
     <button class="btn btn-red" onclick="placeOrder()" id="orderBtn" disabled>🚕 Подать машину</button>
   </div>
 
@@ -843,6 +856,7 @@ let state={passenger:{orders:[],history:[]},driver:{available:false,orders:[],ac
 let currentRole=null,passengerTab='new',driverTab='orders';
 let selCar=null,selDispatch='now',selReqs=[],selTreats=[],wheel;
 let promoState={code:null,discount:0,label:null};
+let paymentMethod='cash';
 let routeStops=[];
 let savedAddresses=[];
 let splitState={count:1,members:[]};
@@ -1073,6 +1087,18 @@ function spinWheel(){
   },700);
 }
 
+/* ══════ ОПЛАТА ══════ */
+function selectPaymentMethod(method){
+  paymentMethod=method;
+  document.querySelectorAll('#paymentRow .payment-btn').forEach(b=>b.classList.toggle('selected',b.dataset.pay===method));
+  const hint={
+    card:'Карта: тестовая оплата без ввода и сохранения реквизитов',
+    cash:'Оплата наличными водителю после поездки',
+    sbp:'СБП: тестовая оплата без реального перевода'
+  };
+  const el=document.getElementById('paymentHint'); if(el)el.textContent=hint[method];
+}
+
 /* ══════ ЦЕНА ══════ */
 function calcPrice(){
   const car=CARS.find(c=>c.id===selCar)||CARS[0];
@@ -1108,6 +1134,7 @@ function renderPrice(){
   if(routeStops.length){detail+=`<div class="price-line"><span>Остановки</span><b>${routeStops.length}</b></div>`;}
   if(wheel){detail+=`<div class="price-line" style="color:var(--verde)"><span>Рулетка</span><b>−${wheel.label}</b></div>`;}
   if(promoState.code){detail+=`<div class="price-line" style="color:var(--verde)"><span>${promoState.code}</span><b>−${promoState.label}</b></div>`;}
+  detail+=`<div class="price-line"><span>Оплата</span><b>${paymentMethod==='card'?'Карта':paymentMethod==='sbp'?'СБП':'Наличные'}</b></div>`;
   document.getElementById('priceDetail').innerHTML=detail;
   const btn=document.getElementById('orderBtn');
   btn.disabled=!(document.getElementById('pickupAddr').value.trim()&&document.getElementById('dropAddr').value.trim());
@@ -1133,7 +1160,7 @@ function placeOrder(){
     time:new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
     etaEndAt:null, trackingProgress:0,
     car:car.name,carIco:car.ico,driver:drv, reqs:selReqs.slice(), treats:selTreats.slice(),
-    dispatch:selDispatch, disc:wheel?wheel.label:null, promo:promoState.code||null, promoLabel:promoState.label||null,
+    dispatch:selDispatch, disc:wheel?wheel.label:null, paymentMethod, promo:promoState.code||null, promoLabel:promoState.label||null,
     stops:routeStops.slice(), splitCount:splitState.count||1, splitMembers:splitState.members.slice(), tips:0,
     searchStartedAt:Date.now(), foundAt:null,
   };
@@ -1176,11 +1203,16 @@ function renderPassengerRide(force){
   const etaMin=Math.floor(etaSeconds/60), etaSec=String(etaSeconds%60).padStart(2,'0');
   const trackProgress=active.status==='onway' ? Math.min(100,Math.max(0,((Date.now()-(active.trackingStartedAt||Date.now()))/Math.max(1,(active.etaEndAt-(active.trackingStartedAt||Date.now()))))*100)) : active.status==='arrived'?100:0;
   const trackingPanel=(active.status==='onway'||active.status==='arrived')?`
-    <div class=\"tracking-card fade-in\">
-      <div class=\"tracking-head\"><div class=\"tracking-title\">🚕 ${active.status==='arrived'?'Водитель приехал':'Машина в пути'}</div><div class=\"tracking-eta\">${active.status==='arrived'?'Сейчас':etaMin+'м '+etaSec+'с'}</div></div>
-      <div class=\"tracking-sub\">Отслеживание автомобиля обновляется автоматически</div>
-      <div class=\"tracking-road\" style=\"--car-left:${Math.max(4,Math.min(96,trackProgress))}%\"><i style=\"left:${Math.max(4,Math.min(96,trackProgress))}%\"></i></div>
-      <div class=\"tracking-points\"><span>📍 Вы</span><span>🏁 Место назначения</span></div>
+    <div class="tracking-card fade-in">
+      <div class="tracking-head"><div class="tracking-title">🚕 ${active.status==='arrived'?'Водитель приехал':'Машина в пути'}</div><div class="tracking-eta">${active.status==='arrived'?'Сейчас':etaMin+'м '+etaSec+'с'}</div></div>
+      <div class="tracking-map" style="--car-left:${Math.max(4,Math.min(96,trackProgress))}%">
+        <img src="assets/venta-map.png" alt="Карта маршрута">
+        <div class="tracking-route"><i></i></div>
+        <div class="tracking-car">🚕</div>
+        <div class="tracking-label">${active.from} → ${active.to}</div>
+      </div>
+      <div class="tracking-sub" style="margin-top:9px;">Водитель в пути · ETA обновляется каждую секунду</div>
+      <div class="tracking-points"><span>📍 Вы</span><span>🏁 Место назначения</span></div>
     </div>`:'';
   const statusPanel=searching?`
     <div class="driver-search-box fade-in">
@@ -1228,7 +1260,7 @@ function renderPassengerRide(force){
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-green" style="flex:1;font-size:16px;padding:12px;" onclick="openModal('Телефон водителя','<div class=\'handwriting\' style=\'font-size:26px;color:var(--oro)\'>${active.driver.phone}</div><div style=\'margin-top:10px\'>Соединение по нажатию (демо)</div>')">📞 Звонок</button>
-          <button class="btn btn-gray" style="flex:1;font-size:16px;padding:12px;" onclick="openModal('Чат с водителем','<div class=\'handwriting\' style=\'font-size:22px;color:var(--grigio)\'>(демо) напиши водителю</div>')">💬 Чат</button>
+          <button class="btn btn-gray" style="flex:1;font-size:16px;padding:12px;" onclick="openModal('Чат с водителем','<div class=\'handwriting\' style=\'font-size:22px;color:var(--grigio)\'>Напишите водителю</div>')">💬 Чат</button>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gold" style="flex:1" onclick="openTipModal('${active.id}')">💛 Чаевые</button><button class="btn btn-red" style="flex:1" onclick="openSOS('${active.id}')">🆘 SOS</button></div>
