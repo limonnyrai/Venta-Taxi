@@ -281,29 +281,107 @@ body{
 <script>
 const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_PROJECT_URL';
 const SUPABASE_KEY = 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const AUTH_READY = !!(window.supabase && SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_KEY.startsWith('PASTE_'));
+const supabaseClient = AUTH_READY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 window.VENTA_USER = null;
 window.VENTA_SUPABASE = supabaseClient;
 
-(async function initAuth(){
+async function initVentaAuth(){
+  if(!AUTH_READY){
+    window.dispatchEvent(new CustomEvent('venta-auth-ready'));
+    updateAuthButtons();
+    return;
+  }
   try{
     const {data:{session}} = await supabaseClient.auth.getSession();
     window.VENTA_USER = session?.user || null;
     window.dispatchEvent(new CustomEvent('venta-auth-ready'));
-  }catch(e){ console.error(e); }
-})();
+    updateAuthButtons();
+  }catch(e){
+    console.error('Supabase auth:', e);
+  }
+}
 
-supabaseClient.auth.onAuthStateChange((_event, session)=>{
-  window.VENTA_USER = session?.user || null;
-  window.dispatchEvent(new CustomEvent('venta-auth-changed',{detail:{user:window.VENTA_USER}}));
-  if(typeof updateAuthButtons==='function') updateAuthButtons();
-});
+function updateAuthButtons(){
+  const btn=document.getElementById('accountBtn');
+  if(!btn) return;
+  if(window.VENTA_USER) btn.textContent='👤 '+(window.VENTA_USER.email || 'Аккаунт');
+  else btn.textContent='👤 Войти';
+}
+
+if(AUTH_READY){
+  supabaseClient.auth.onAuthStateChange((_event, session)=>{
+    window.VENTA_USER=session?.user||null;
+    window.dispatchEvent(new CustomEvent('venta-auth-changed',{detail:{user:window.VENTA_USER}}));
+    updateAuthButtons();
+  });
+}
 
 async function signOutVenta(){
+  if(!AUTH_READY){ toast('Авторизация ещё не настроена'); return; }
   await supabaseClient.auth.signOut();
   closeAccountModal();
+  updateAuthButtons();
   toast('Вы вышли из аккаунта');
 }
+
+let authMode='login';
+let authEmail='';
+function openAccountModal(){
+  document.getElementById('accountModalBack').classList.add('show');
+  switchAuthMode('login');
+  updateAuthButtons();
+}
+function closeAccountModal(){
+  document.getElementById('accountModalBack').classList.remove('show');
+}
+function switchAuthMode(mode){
+  authMode=mode;
+  document.getElementById('loginTab').classList.toggle('active',mode==='login');
+  document.getElementById('registerTab').classList.toggle('active',mode==='register');
+  document.getElementById('authStep1').style.display='';
+  document.getElementById('authStep2').style.display='none';
+  document.getElementById('authPassword').autocomplete=mode==='register'?'new-password':'current-password';
+  document.getElementById('authHint').textContent=mode==='register'?'Регистрация: e-mail, пароль и код из письма':'Для входа нужен e-mail и пароль';
+}
+async function submitAuth(){
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  if(!email||!password){toast('Введи e-mail и пароль');return;}
+  if(!AUTH_READY){toast('Сначала настрой Supabase: вставь URL и ключ');return;}
+  try{
+    if(authMode==='register'){
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+      if(error) throw error;
+      authEmail=email;
+      document.getElementById('authStep1').style.display='none';
+      document.getElementById('authStep2').style.display='';
+      toast('Код отправлен на e-mail');
+    }else{
+      const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      closeAccountModal();
+      toast('Вы вошли!');
+    }
+  }catch(e){ toast(e.message||'Ошибка авторизации'); console.error(e); }
+}
+async function verifyAuthCode(){
+  const token=document.getElementById('authCode').value.trim();
+  if(!token){toast('Введи код из письма');return;}
+  if(!AUTH_READY){toast('Supabase не настроен');return;}
+  try{
+    const {error}=await supabaseClient.auth.verifyOtp({email:authEmail||document.getElementById('authEmail').value.trim(),token,type:'signup'});
+    if(error) throw error;
+    closeAccountModal();
+    updateAuthButtons();
+    toast('Аккаунт подтверждён!');
+  }catch(e){toast(e.message||'Неверный код');console.error(e);}
+}
+function backAuthStep(){
+  document.getElementById('authStep2').style.display='none';
+  document.getElementById('authStep1').style.display='';
+}
+window.addEventListener('load',initVentaAuth);
 </script>
 
 
@@ -382,23 +460,17 @@ async function signOutVenta(){
       <div class="input-label"><b>B</b> куда</div>
       <input class="input" id="dropAddr" placeholder="Куда едем?">
     </div>
-<div style="
-    width:100%;
-    height:603px;
-    border-radius:24px;
-    overflow:hidden;
-    margin-bottom:14px;
-">
-    <iframe
-        src="https://yandex.ru/map-widget/v1/?um=constructor%3A0ee7c293946471b953779a82f5da79f4cf780d9e7c5f5898cc1cd448c24f122d&source=constructor"
+
+    <div class="map-wrap">
+      <iframe
+        src="https://yandex.ru/map-widget/v1/?um=constructor%3A0ee7c293946471b953779a82f5da79f4cf780d9e7c5f5898cc1cd448c24f122d&amp;source=constructor"
         width="100%"
-        height="603"
+        height="100%"
         frameborder="0"
         allowfullscreen
-        style="display:block;width:100%;height:100%;border:0;"
-        title="Яндекс Карты">
-    </iframe>
-</div>
+        title="Карта Venta Taxi"></iframe>
+    </div>
+
     <div class="price-card" style="margin-bottom:14px;">
       <div class="price-top"><span class="price-label">выбери машину</span></div>
     </div>
