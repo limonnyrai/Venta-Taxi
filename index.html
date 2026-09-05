@@ -226,6 +226,20 @@ body{
 .wheel-btn{background:var(--green,#1E8449);color:#fff;border:none;border-radius:14px;padding:12px 24px;font-family:'Rustico Italiano',serif;font-weight:700;font-size:17px;cursor:pointer;}
 .wheel-result{font-family:'Rustico Italiano',cursive;font-size:22px;color:var(--oro);margin-top:12px;min-height:28px;}
 
+.driver-search-box{background:linear-gradient(145deg,rgba(201,162,39,.12),rgba(30,132,73,.06));border:1px solid rgba(201,162,39,.35);border-radius:22px;padding:22px 18px;margin-bottom:14px;text-align:center;box-shadow:0 12px 35px rgba(0,0,0,.22);}
+.search-car{font-size:52px;animation:searchTaxi 1.15s ease-in-out infinite;}
+@keyframes searchTaxi{0%,100%{transform:translateX(-8px) rotate(-2deg)}50%{transform:translateX(8px) rotate(2deg)}}
+.search-title{font-size:25px;font-weight:800;color:var(--bianco);margin-top:6px;}
+.search-sub{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:18px;margin-top:4px;}
+.search-dots{display:flex;justify-content:center;gap:7px;margin:14px 0 9px;}
+.search-dots i{width:8px;height:8px;border-radius:50%;background:var(--oro);animation:searchDots 1s infinite ease-in-out;}
+.search-dots i:nth-child(2){animation-delay:.15s}.search-dots i:nth-child(3){animation-delay:.3s}
+@keyframes searchDots{0%,80%,100%{opacity:.25;transform:scale(.75)}40%{opacity:1;transform:scale(1)}}
+.search-candidate{font-family:'Rustico Italiano',cursive;font-size:20px;color:var(--oro);min-height:24px;}
+.driver-found{background:linear-gradient(145deg,rgba(30,132,73,.16),rgba(201,162,39,.08));border-color:rgba(30,132,73,.5);}
+.found-avatar{font-size:48px;margin-bottom:2px;}
+.found-car{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:18px;margin-top:5px;}
+
 /* ═══ NAV ═══ */
 .nav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(23,22,26,.94);backdrop-filter:blur(12px);border-top:1px solid var(--nero-3);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--grigio);transition:color .2s;}
@@ -384,6 +398,28 @@ button,input{font:inherit;}
 .profile-actions .btn{flex:1;}
 .profile-error{min-height:22px;text-align:center;color:#ff8c82;font-family:'Rustico Italiano',cursive;font-size:17px;margin-top:10px;}
 @media(max-width:600px){.profile-setup{padding:20px;border-radius:22px}.profile-setup h3{font-size:25px}.profile-setup .ps-sub{font-size:17px}.ps-field input{font-size:18px}}
+
+/* ═══ VENTA THEME + AUTONOMOUS FONTS ═══ */
+@font-face{font-family:'Noto Sans Local';src:url('fonts/NotoSans-Regular.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face{font-family:'Noto Sans CJK Local';src:url('fonts/NotoSansCJK-Regular.ttc') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+html,body{font-family:'Noto Sans Local','Noto Sans CJK Local',sans-serif;}
+body{transition:background .25s,color .25s;}
+.light-theme{--nero:#F5F3EF;--nero-2:#FFFFFF;--nero-3:#DAD6CE;--bianco:#191715;--grigio:#6F675E;--oro:#A87E08;--oro-2:#C69C22;--rosso:#B73529;--rosso-dark:#8B241B;--verde:#1E8449;--verde-dark:#155d33;background:linear-gradient(160deg,#f7f4ee 0%,#ebe7df 100%);color:var(--bianco);}
+.light-theme .topbar,.light-theme .nav{background:rgba(255,255,255,.88);}
+.lang-back{position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.78);backdrop-filter:blur(9px);display:none;align-items:center;justify-content:center;padding:18px;}
+.lang-back.show{display:flex;}
+.lang-modal{width:100%;max-width:380px;background:var(--nero-2);border:1px solid var(--nero-3);border-radius:26px;padding:24px;box-shadow:0 25px 80px rgba(0,0,0,.45);}
+.lang-modal h3{font-size:25px;margin-bottom:5px}.lang-modal p{color:var(--grigio);margin-bottom:16px}
+.lang-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}.lang-btn{background:var(--nero);border:1px solid var(--nero-3);color:var(--bianco);border-radius:14px;padding:12px;cursor:pointer;text-align:left;font-weight:700}.lang-btn:hover{border-color:var(--oro)}
+.pref-row{display:flex;gap:8px;align-items:center;margin-top:10px}.pref-btn{flex:1;border:1px solid var(--nero-3);background:var(--nero);color:var(--bianco);border-radius:12px;padding:10px;cursor:pointer}
+.account-extra{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.account-extra button{font-size:14px!important;padding:10px!important}
+.profile-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}.profile-mini .stat-card{padding:10px}.profile-mini .value{font-size:22px}
+.tracking-card{background:linear-gradient(135deg,rgba(51,136,255,.14),rgba(30,132,73,.08));border:1px solid rgba(51,136,255,.35);border-radius:20px;padding:14px;margin-bottom:12px;overflow:hidden}
+.tracking-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.tracking-title{font-weight:800;font-size:18px}.tracking-eta{color:#3388ff;font-weight:900;font-size:20px}.tracking-sub{font-size:13px;color:var(--grigio);margin-top:4px}.tracking-road{position:relative;height:12px;background:rgba(128,128,128,.22);border-radius:99px;margin:15px 0 8px;overflow:visible}.tracking-road i{position:absolute;top:-7px;width:26px;height:26px;border-radius:50%;background:#3388ff;box-shadow:0 0 0 5px rgba(51,136,255,.18);transform:translateX(-50%);transition:left 1s linear}.tracking-road::after{content:'🚕';position:absolute;top:-14px;left:var(--car-left,40%);transform:translateX(-50%);font-size:25px;transition:left 1s linear}.tracking-points{display:flex;justify-content:space-between;font-size:12px;color:var(--grigio)}
+.review-stars{display:flex;gap:5px;font-size:27px;justify-content:center;margin:10px 0}.review-star{cursor:pointer;opacity:.35}.review-star.active{opacity:1}.review-text{width:100%;min-height:90px;resize:vertical}
+.favorite-driver{display:flex;align-items:center;gap:10px;padding:10px;background:var(--nero);border:1px solid var(--nero-3);border-radius:14px;margin-top:8px}.favorite-driver .grow{flex:1}.heart-btn{border:1px solid var(--nero-3);background:var(--nero-2);color:#ff6b6b;border-radius:11px;padding:8px;cursor:pointer}
+.support-msg{padding:9px 11px;border-radius:13px;margin:6px 0;max-width:85%;background:var(--nero);border:1px solid var(--nero-3)}.support-msg.me{margin-left:auto;background:rgba(30,132,73,.12);border-color:rgba(30,132,73,.35)}
+@media(max-width:600px){.lang-modal{padding:18px}.lang-list{grid-template-columns:1fr 1fr}.tracking-eta{font-size:18px}.account-extra{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 
@@ -786,6 +822,19 @@ window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
   <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
 </div>
 <div id="toast"></div>
+<div class="lang-back" id="languageBack">
+  <div class="lang-modal">
+    <h3>🌍 Выберите язык</h3>
+    <p>Язык можно изменить позже в настройках профиля.</p>
+    <div class="lang-list">
+      <button class="lang-btn" onclick="setLanguage('ru')">🇷🇺 Русский</button>
+      <button class="lang-btn" onclick="setLanguage('en')">🇬🇧 English</button>
+      <button class="lang-btn" onclick="setLanguage('zh')">🇨🇳 中文</button>
+      <button class="lang-btn" onclick="setLanguage('ja')">🇯🇵 日本語</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
 /* ══════ ДАННЫЕ ══════ */
@@ -799,6 +848,13 @@ let savedAddresses=[];
 let splitState={count:1,members:[]};
 let notifications=[];
 let driverApproved=false;
+let appLanguage=localStorage.getItem('venta_language')||'';
+let themeMode=localStorage.getItem('venta_theme')||'dark';
+let favoriteDrivers=JSON.parse(localStorage.getItem('venta_favorite_drivers')||'[]');
+let supportMessages=JSON.parse(localStorage.getItem('venta_support_messages')||'[]');
+let tripStats=JSON.parse(localStorage.getItem('venta_trip_stats')||'{"trips":0,"spent":0,"bonus":0}');
+let currentReview={stars:0,text:''};
+let etaTimer=null;
 const ADMIN_EMAIL='jony.oficcial@mail.ru';
 const PROMOS={
   VENTA20:{type:'percent',value:20,label:'−20%'},
@@ -915,7 +971,7 @@ window.addEventListener('venta-auth-ready', async function(){
   let ti=0;document.getElementById('splashTip').textContent=SPLASH_TIPS[ti];
   setInterval(function(){ti=(ti+1)%SPLASH_TIPS.length;document.getElementById('splashTip').textContent=SPLASH_TIPS[ti];},600);
   setTimeout(function(){document.getElementById('splash').classList.add('hide');setTimeout(showRoleSel,400);},1900);
-  initCars();initDispatch();initReqs();initTreats();renderPrice();
+  initCars();initDispatch();initReqs();initTreats();renderPrice();initPreferences();
 });
 
 function showRoleSel(){
@@ -1073,11 +1129,13 @@ function placeOrder(){
   const id='V-'+Date.now().toString(36).toUpperCase().slice(-5);
   const drv=DRIVERS[Math.floor(Math.random()*DRIVERS.length)];
   const order={
-    id,from,to,km,money:total,status:'pending',
+    id,from,to,km,money:total,status:'searching',
     time:new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
+    etaEndAt:null, trackingProgress:0,
     car:car.name,carIco:car.ico,driver:drv, reqs:selReqs.slice(), treats:selTreats.slice(),
     dispatch:selDispatch, disc:wheel?wheel.label:null, promo:promoState.code||null, promoLabel:promoState.label||null,
     stops:routeStops.slice(), splitCount:splitState.count||1, splitMembers:splitState.members.slice(), tips:0,
+    searchStartedAt:Date.now(), foundAt:null,
   };
   state.passenger.orders.unshift(order);
   state.driver.orders.unshift({...order,status:'pending',seen:false});
@@ -1085,8 +1143,9 @@ function placeOrder(){
   document.getElementById('pickupAddr').value='';document.getElementById('dropAddr').value='';
   selReqs=[];selTreats=[];wheel=null;promoState={code:null,discount:0,label:null};routeStops=[];splitState={count:1,members:[]};resetEstimate();initReqs();initTreats();renderPrice();
   renderPassengerRide(order);showPassengerTab('ride');
+  startDriverSearch(order);
   addNotification('Новый заказ','Поездка '+id+' создана');
-  toast('🚕 Машина подана: '+id);
+  toast('🚕 Ищем водителя...');
 }
 
 /* ══════ ПАССАЖИР ══════ */
@@ -1108,10 +1167,38 @@ function renderPassengerRide(force){
   const active=force||state.passenger.orders.find(o=>o.status!=='done')||null;
   const c=document.getElementById('passengerRideContent');
   if(!active){c.innerHTML='<div class="empty"><div class="bottino">🚕</div>Пока нет поездки<br><span class="handwriting" style="font-size:20px">Создай заказ во вкладке «Новый»</span></div>';return;}
-  const statusText={pending:'Машина едет к вам',onway:'Водитель ждёт',arrived:'Садитесь!',done:'Поездка завершена',rated:'Спасибо за поездку!'};
-  const pct={pending:25,onway:50,arrived:75,done:100}[active.status]||25;
+  const statusText={searching:'Ищем водителя...',found:'Водитель найден',pending:'Ищем водителя...',onway:'Едет к вам',arrived:'Водитель приехал',done:'Поездка завершена',rated:'Спасибо за поездку!'};
+  const pct={searching:12,found:28,pending:28,onway:55,arrived:78,done:100}[active.status]||12;
   const showRating=active.status==='done'&&!active.rated;
+  const searching=active.status==='searching';
+  const found=active.status==='found';
+  const etaSeconds=active.etaEndAt?Math.max(0,Math.ceil((active.etaEndAt-Date.now())/1000)):0;
+  const etaMin=Math.floor(etaSeconds/60), etaSec=String(etaSeconds%60).padStart(2,'0');
+  const trackProgress=active.status==='onway' ? Math.min(100,Math.max(0,((Date.now()-(active.trackingStartedAt||Date.now()))/Math.max(1,(active.etaEndAt-(active.trackingStartedAt||Date.now()))))*100)) : active.status==='arrived'?100:0;
+  const trackingPanel=(active.status==='onway'||active.status==='arrived')?`
+    <div class=\"tracking-card fade-in\">
+      <div class=\"tracking-head\"><div class=\"tracking-title\">🚕 ${active.status==='arrived'?'Водитель приехал':'Машина в пути'}</div><div class=\"tracking-eta\">${active.status==='arrived'?'Сейчас':etaMin+'м '+etaSec+'с'}</div></div>
+      <div class=\"tracking-sub\">Отслеживание автомобиля обновляется автоматически</div>
+      <div class=\"tracking-road\" style=\"--car-left:${Math.max(4,Math.min(96,trackProgress))}%\"><i style=\"left:${Math.max(4,Math.min(96,trackProgress))}%\"></i></div>
+      <div class=\"tracking-points\"><span>📍 Вы</span><span>🏁 Место назначения</span></div>
+    </div>`:'';
+  const statusPanel=searching?`
+    <div class="driver-search-box fade-in">
+      <div class="search-car">🚕</div>
+      <div class="search-title">Ищем водителя...</div>
+      <div class="search-sub">Подбираем ближайшего водителя</div>
+      <div class="search-dots"><i></i><i></i><i></i></div>
+      <div class="search-candidate">${escapeHtml(active.searchingDriverName||DRIVERS[0].name)}</div>
+    </div>`:found?`
+    <div class="driver-search-box driver-found fade-in">
+      <div class="found-avatar">${active.driver.avatar}</div>
+      <div class="search-title">Водитель найден</div>
+      <div class="search-sub">${escapeHtml(active.driver.name)} · ★ ${active.driver.rate}</div>
+      <div class="found-car">${escapeHtml(active.driver.car)}</div>
+    </div>`:'';
   c.innerHTML=`
+    ${trackingPanel}
+    ${statusPanel}
     <div class="price-card fade-in">
       <div class="price-top"><span class="price-label">${statusText[active.status]||'Поездка'}</span><span style="font-family:'Rustico Italiano',cursive;color:var(--grigio)">${active.id}</span></div>
       <div class="price-bar"><i style="width:${pct}%"></i></div>
@@ -1160,11 +1247,63 @@ function renderPassengerRide(force){
         <div class="quick-rate" id="quickRate">
           ${['Быстро','Вежливо','Чисто','Комфортно','Классный водитель'].map((q,i)=>`<div class="qr-chip" onclick="quickRate('${active.id}','${q}')">${q}</div>`).join('')}
         </div>
-        <button class="btn btn-green" onclick="skipRate('${active.id}')">Пропустить</button>
+        <button class="btn btn-green" onclick="skipRate('${active.id}')">Пропустить</button><button class="btn btn-gray" style="margin-top:8px" onclick="toggleFavoriteDriver()">❤️ В любимые</button>
       </div>
     `:''}`}
   `;
 }
+let driverSearchTimers=new Map();
+function startDriverSearch(order){
+  if(!order)return;
+  if(driverSearchTimers.has(order.id)) return;
+  const candidates=DRIVERS.slice().sort(()=>Math.random()-0.5);
+  let idx=0;
+  const started=order.searchStartedAt||Date.now();
+  order.searchStartedAt=started;
+  order.status='searching';
+  order.searchingDriverName=candidates[0]?.name||'Водитель';
+  save();
+  renderPassengerRide(order);
+  const timer=setInterval(()=>{
+    const elapsed=Date.now()-started;
+    if(elapsed<3000){
+      idx=(idx+1)%candidates.length;
+      order.searchingDriverName=candidates[idx].name;
+      renderPassengerRide(order);
+      save();
+      return;
+    }
+    clearInterval(timer);
+    driverSearchTimers.delete(order.id);
+    order.driver=candidates[idx];
+    order.status='found';
+    order.foundAt=Date.now();
+    save();
+    renderPassengerRide(order);
+    addNotification('Водитель найден',order.driver.name+' уже принял поездку');
+    setTimeout(()=>{
+      const current=state.passenger.orders.find(o=>o.id===order.id);
+      if(!current || current.status!=='found') return;
+      current.status='onway';
+      current.etaEndAt=Date.now()+Math.max(90,Math.round((current.km||6)*180))*1000;
+      current.trackingStartedAt=Date.now();
+      save();
+      renderPassengerRide(current);
+      addNotification('Водитель в пути',current.driver.name+' едет к вам');
+      // Синхронизируем и водительский заказ: он остаётся ожидающим, пока водитель нажмёт «Принять».
+    },1500);
+  },500);
+  driverSearchTimers.set(order.id,timer);
+}
+
+function resumeDriverSearch(){
+  state.passenger.orders.filter(o=>o.status==='searching').forEach(startDriverSearch);
+}
+setInterval(()=>{
+  const o=state.passenger.orders.find(x=>x.status==='onway');
+  if(o){ if(o.etaEndAt && Date.now()>=o.etaEndAt){o.status='arrived';save();addNotification('Водитель приехал','Машина ожидает вас');} renderPassengerRide(o); }
+},1000);
+
 function rateRide(id,stars){
   const o=state.passenger.orders.find(x=>x.id===id);o.rated=true;o.stars=stars;
   save(); addNotification('Оценка поездки','Ты поставил оценку '+stars+' ⭐'); toast('Спасибо! ⭐'.repeat(stars));renderPassenger();showPassengerTab('hist');
@@ -1212,7 +1351,8 @@ function acceptOrder(id){
 function driverStep(n){
   const o=state.driver.active;if(!o)return;
   if(n===1){o.status='arrived';const po=state.passenger.orders.find(x=>x.id===o.id);if(po)po.status='arrived';}
-  if(n===2){o.status='done';o.doneTime=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});const po=state.passenger.orders.find(x=>x.id===o.id);if(po)po.status='done';state.driver.history.unshift({...o});state.passenger.history.unshift({...o});}
+  if(n===2){o.status='done';o.doneTime=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});const po=state.passenger.orders.find(x=>x.id===o.id);if(po)po.status='done';state.driver.history.unshift({...o});state.passenger.history.unshift({...o});
+    tripStats.trips=(tripStats.trips||0)+1; tripStats.spent=(tripStats.spent||0)+(o.money||0); tripStats.bonus=(tripStats.bonus||0)+Math.max(1,Math.floor((o.money||0)*0.05)); localStorage.setItem('venta_trip_stats',JSON.stringify(tripStats)); }
   save();renderDriver();
   if(o.status==='done'){toast('✅ Поездка завершена');showDriverTab('orders');}
 }
@@ -1422,6 +1562,55 @@ function refreshDriverAnalyticsButton(){
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
 function escapeAttr(v){return escapeHtml(v).replace(/`/g,'&#96;');}
+
+
+/* ═══ ТЕМА / ЯЗЫК ═══ */
+function applyTheme(){ document.body.classList.toggle('light-theme',themeMode==='light'); localStorage.setItem('venta_theme',themeMode); }
+function toggleTheme(){ themeMode=themeMode==='light'?'dark':'light'; applyTheme(); toast(themeMode==='light'?'☀️ Светлая тема':'🌙 Тёмная тема'); }
+function openLanguageModal(){ document.getElementById('languageBack').classList.add('show'); }
+function setLanguage(lang){ appLanguage=lang; localStorage.setItem('venta_language',lang); document.documentElement.lang=lang==='ru'?'ru':lang==='en'?'en':lang; document.getElementById('languageBack').classList.remove('show'); translateInterface(); toast(lang==='ru'?'🇷🇺 Русский':lang==='en'?'🇬🇧 English':lang==='zh'?'🇨🇳 中文':'🇯🇵 日本語'); }
+const I18N={
+  ru:{'Новый':'Новый','Поездка':'Поездка','История':'История','заказчик':'заказчик','водитель':'водитель','Откуда':'Откуда','Куда':'Куда','Куда едем?':'Куда едем?','Подать машину':'Подать машину','выбери машину':'выбери машину','тип подачи':'тип подачи','просьбы к водителю':'просьбы к водителю','итого':'итого','Пока нет поездки':'Пока нет поездки','Ищем водителя...':'Ищем водителя...','Водитель найден':'Водитель найден','Едет к вам':'Едет к вам','Водитель приехал':'Водитель приехал','Поездка завершена':'Поездка завершена','Профиль':'Профиль','Поддержка':'Поддержка','Язык':'Язык','Тема':'Тема'},
+  en:{'Новый':'New','Поездка':'Ride','История':'History','заказчик':'Passenger','водитель':'Driver','Откуда':'From','Куда':'To','Куда едем?':'Where to?','Подать машину':'Request car','выбери машину':'choose a car','тип подачи':'pickup type','просьбы к водителю':'driver requests','итого':'total','Пока нет поездки':'No active ride','Ищем водителя...':'Finding a driver...','Водитель найден':'Driver found','Едет к вам':'Driving to you','Водитель приехал':'Driver arrived','Поездка завершена':'Ride completed','Профиль':'Profile','Поддержка':'Support','Язык':'Language','Тема':'Theme'},
+  zh:{'Новый':'新订单','Поездка':'行程','История':'历史','заказчик':'乘客','водитель':'司机','Откуда':'出发地','Куда':'目的地','Куда едем?':'去哪里？','Подать машину':'叫车','выбери машину':'选择车型','тип подачи':'上车方式','просьбы к водителю':'司机要求','итого':'合计','Пока нет поездки':'暂无行程','Ищем водителя...':'正在寻找司机…','Водитель найден':'已找到司机','Едет к вам':'司机正在前往','Водитель приехал':'司机已到达','Поездка завершена':'行程完成','Профиль':'个人资料','Поддержка':'客服','Язык':'语言','Тема':'主题'},
+  ja:{'Новый':'新規','Поездка':'乗車','История':'履歴','заказчик':'乗客','водитель':'ドライバー','Откуда':'出発地','Куда':'目的地','Куда едем?':'行き先','Подать машину':'配車する','выбери машину':'車種を選択','тип подачи':'配車タイプ','просьбы к водителю':'ドライバーへの要望','итого':'合計','Пока нет поездки':'乗車はありません','Ищем водителя...':'ドライバーを探しています…','Водитель найден':'ドライバーが見つかりました','Едет к вам':'お迎えに向かっています','Водитель приехал':'ドライバーが到着しました','Поездка завершена':'乗車完了','Профиль':'プロフィール','Поддержка':'サポート','Язык':'言語','Тема':'テーマ'}
+};
+function translateInterface(){
+  const dict=I18N[appLanguage||'ru']||I18N.ru;
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n=>{const t=n.nodeValue.trim(); if(dict[t]) n.nodeValue=n.nodeValue.replace(t,dict[t]);});
+  document.querySelectorAll('input[placeholder]').forEach(el=>{const t=el.getAttribute('placeholder'); if(dict[t]) el.setAttribute('placeholder',dict[t]);});
+}
+
+/* ═══ ПРОФИЛЬ / БОНУСЫ ═══ */
+function profileLevel(points){ if(points>=1500)return {name:'PREMIUM',cashback:5}; if(points>=700)return {name:'VIP',cashback:5}; if(points>=200)return {name:'GOLD',cashback:3}; return {name:'START',cashback:1}; }
+async function openProfileDashboard(){
+  closeAccountModal();
+  const p=await getVentaProfile(); const lvl=profileLevel(tripStats.bonus||0); const ref=((window.VENTA_USER?.id||'').replace(/-/g,'').slice(0,8).toUpperCase())||'VENTA0000';
+  openFeatureModal(`<div class="feature-modal-title">👤 Профиль Venta</div><div class="feature-modal-sub">${escapeHtml((p?.first_name||'')+' '+(p?.last_name||'')).trim()||'Пользователь'} · ${escapeHtml(window.VENTA_USER?.email||'')}</div><div class="profile-mini"><div class="stat-card"><div class="value">${tripStats.trips||0}</div><div class="label">Поездок</div></div><div class="stat-card"><div class="value">${tripStats.spent||0} ₽</div><div class="label">Потрачено</div></div><div class="stat-card"><div class="value">${tripStats.bonus||0}</div><div class="label">Бонусов</div></div><div class="stat-card"><div class="value">${lvl.name}</div><div class="label">Уровень · ${lvl.cashback}% кэшбэк</div></div></div><div class="split-person"><span>Реферальный код</span><b>${ref}</b></div>`);
+}
+
+/* ═══ ЛЮБИМЫЕ ВОДИТЕЛИ ═══ */
+function openFavorites(){
+  closeAccountModal();
+  const html=`<div class="feature-modal-title">❤️ Любимые водители</div><div class="feature-modal-sub">Сохраняй водителей после поездки.</div><div id="favoriteDriversList">${favoriteDrivers.length?favoriteDrivers.map((d,i)=>`<div class="favorite-driver"><div style="font-size:28px">${d.avatar||'👨'}</div><div class="grow"><b>${escapeHtml(d.name)}</b><div style="color:var(--grigio);font-size:13px">★ ${d.rate||'4.9'} · ${escapeHtml(d.car||'')}</div></div><button class="heart-btn" onclick="removeFavorite(${i})">♥</button></div>`).join(''):'<div class="auth-note">Пока нет любимых водителей.</div>'}</div>`;
+  openFeatureModal(html);
+}
+function removeFavorite(i){favoriteDrivers.splice(i,1);localStorage.setItem('venta_favorite_drivers',JSON.stringify(favoriteDrivers));openFavorites();}
+function toggleFavoriteDriver(){const o=state.passenger.orders.find(x=>x.status==='done')||state.passenger.orders[0];if(!o?.driver)return;const ex=favoriteDrivers.find(x=>x.name===o.driver.name);if(!ex)favoriteDrivers.push(o.driver);localStorage.setItem('venta_favorite_drivers',JSON.stringify(favoriteDrivers));addNotification('Любимый водитель',o.driver.name+' добавлен в избранное');toast('❤️ Добавлено');}
+
+/* ═══ ПОДДЕРЖКА ═══ */
+function openSupportChat(){closeAccountModal(); const render=()=>{const msgs=supportMessages.length?supportMessages.map(m=>`<div class="support-msg ${m.me?'me':''}">${escapeHtml(m.text)}</div>`).join(''):'<div class="auth-note">Поддержка онлайн. Напиши свой вопрос.</div>';openFeatureModal(`<div class="feature-modal-title">💬 Чат поддержки</div><div class="feature-modal-sub">Venta Support</div><div id="supportMsgs" style="max-height:280px;overflow:auto">${msgs}</div><div class="feature-actions"><input class="auth-small" id="supportInput" placeholder="Сообщение..." style="margin:0"><button class="btn btn-green" onclick="sendSupportMessage()">Отправить</button></div>`);};render();}
+function sendSupportMessage(){const el=document.getElementById('supportInput');if(!el||!el.value.trim())return;supportMessages.push({text:el.value.trim(),me:true});supportMessages.push({text:'Спасибо! Поддержка получила сообщение и ответит в ближайшее время.',me:false});localStorage.setItem('venta_support_messages',JSON.stringify(supportMessages));openSupportChat();}
+
+/* ═══ ТЕКСТОВЫЕ ОТЗЫВЫ ═══ */
+function openReviewModal(){closeAccountModal();currentReview={stars:0,text:''};openFeatureModal(`<div class="feature-modal-title">📝 Отзыв о поездке</div><div class="feature-modal-sub">Оставьте оценку и комментарий.</div><div class="review-stars" id="reviewStars">${[1,2,3,4,5].map(i=>`<span class="review-star" data-v="${i}" onclick="selectReviewStar(${i})">⭐</span>`).join('')}</div><textarea class="auth-small review-text" id="reviewText" placeholder="Напишите отзыв..."></textarea><div class="feature-actions"><button class="btn btn-green" onclick="submitReview()">Отправить</button><button class="btn btn-gray" onclick="closeFeatureModal()">Отмена</button></div>`);}
+function selectReviewStar(v){currentReview.stars=v;document.querySelectorAll('.review-star').forEach(x=>x.classList.toggle('active',Number(x.dataset.v)<=v));}
+function submitReview(){const text=(document.getElementById('reviewText')?.value||'').trim();if(!currentReview.stars||!text){toast('Поставь оценку и напиши отзыв');return;}const reviews=JSON.parse(localStorage.getItem('venta_reviews')||'[]');reviews.unshift({stars:currentReview.stars,text,time:new Date().toLocaleString('ru-RU')});localStorage.setItem('venta_reviews',JSON.stringify(reviews.slice(0,30)));addNotification('Новый отзыв','Спасибо за отзыв!');closeFeatureModal();toast('Отзыв отправлен ⭐');}
+
+/* ═══ ПЕРВЫЙ ЗАПУСК ═══ */
+function initPreferences(){applyTheme(); if(!appLanguage) setTimeout(()=>document.getElementById('languageBack')?.classList.add('show'),600); else translateInterface();}
 
 /* ══════ УТИЛИТЫ ══════ */
 function openModal(title,html){
