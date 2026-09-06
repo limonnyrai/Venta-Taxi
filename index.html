@@ -881,7 +881,8 @@ let splitState={count:1,members:[]};
 let notifications=[];
 let driverApproved=false;
 let appLanguage=localStorage.getItem('venta_language')||'';
-let themeMode=localStorage.getItem('venta_theme')||'dark';
+let themeMode=localStorage.getItem('venta_theme')||'auto';
+let themeManual=localStorage.getItem('venta_theme_manual')==='1';
 let favoriteDrivers=JSON.parse(localStorage.getItem('venta_favorite_drivers')||'[]');
 let supportMessages=JSON.parse(localStorage.getItem('venta_support_messages')||'[]');
 let tripStats=JSON.parse(localStorage.getItem('venta_trip_stats')||'{"trips":0,"spent":0,"bonus":0}');
@@ -1755,8 +1756,31 @@ function escapeAttr(v){return escapeHtml(v).replace(/`/g,'&#96;');}
 
 
 /* ═══ ТЕМА / ЯЗЫК ═══ */
-function applyTheme(){ document.body.classList.toggle('light-theme',themeMode==='light'); localStorage.setItem('venta_theme',themeMode); }
-function toggleTheme(){ themeMode=themeMode==='light'?'dark':'light'; applyTheme(); toast(themeMode==='light'?'☀️ Светлая тема':'🌙 Тёмная тема'); }
+function getAutoTheme(){const h=new Date().getHours(); return (h>=23||h<6)?'dark':'light';}
+function applyTheme(){
+  const effective=themeManual ? themeMode : getAutoTheme();
+  document.body.classList.toggle('light-theme',effective==='light');
+  if(themeManual) localStorage.setItem('venta_theme',themeMode); else localStorage.removeItem('venta_theme');
+}
+function toggleTheme(){
+  themeManual=true;
+  themeMode=document.body.classList.contains('light-theme')?'dark':'light';
+  localStorage.setItem('venta_theme_manual','1');
+  localStorage.setItem('venta_theme',themeMode);
+  applyTheme();
+  toast(themeMode==='light'?'☀️ Светлая тема':'🌙 Тёмная тема');
+}
+function enableAutoTheme(){
+  themeManual=false; themeMode='auto';
+  localStorage.removeItem('venta_theme_manual'); localStorage.removeItem('venta_theme');
+  applyTheme(); toast('🌙 Авто-тема по времени включена');
+}
+function resetAllVentaData(){
+  if(!confirm('Сбросить все данные Venta Taxi? История, настройки, адреса, уведомления и профиль на этом устройстве будут очищены.')) return;
+  const keepKeys=['venta_language'];
+  Object.keys(localStorage).filter(k=>k.startsWith('venta_')&&!keepKeys.includes(k)).forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
 function openLanguageModal(){ document.getElementById('languageBack').classList.add('show'); }
 function setLanguage(lang){ appLanguage=lang; localStorage.setItem('venta_language',lang); document.documentElement.lang=lang==='ru'?'ru':lang==='en'?'en':lang; document.getElementById('languageBack').classList.remove('show'); translateInterface(); toast(lang==='ru'?'🇷🇺 Русский':lang==='en'?'🇬🇧 English':lang==='zh'?'🇨🇳 中文':'🇯🇵 日本語'); }
 const I18N={
@@ -1778,7 +1802,7 @@ function profileLevel(points){ if(points>=1500)return {name:'PREMIUM',cashback:5
 async function openProfileDashboard(){
   closeAccountModal();
   const p=await getVentaProfile(); const lvl=profileLevel(tripStats.bonus||0); const ref=((window.VENTA_USER?.id||'').replace(/-/g,'').slice(0,8).toUpperCase())||'VENTA0000';
-  openFeatureModal(`<div class="feature-modal-title">👤 Профиль Venta</div><div class="feature-modal-sub">${escapeHtml((p?.first_name||'')+' '+(p?.last_name||'')).trim()||'Пользователь'} · ${escapeHtml(window.VENTA_USER?.email||'')}</div><div class="profile-mini"><div class="stat-card"><div class="value">${tripStats.trips||0}</div><div class="label">Поездок</div></div><div class="stat-card"><div class="value">${tripStats.spent||0} ₽</div><div class="label">Потрачено</div></div><div class="stat-card"><div class="value">${tripStats.bonus||0}</div><div class="label">Бонусов</div></div><div class="stat-card"><div class="value">${lvl.name}</div><div class="label">Уровень · ${lvl.cashback}% кэшбэк</div></div></div><div class="split-person"><span>Реферальный код</span><b>${ref}</b></div>`);
+  openFeatureModal(`<div class="feature-modal-title">👤 Профиль Venta</div><div class="feature-modal-sub">${escapeHtml((p?.first_name||'')+' '+(p?.last_name||'')).trim()||'Пользователь'} · ${escapeHtml(window.VENTA_USER?.email||'')}</div><div class="profile-mini"><div class="stat-card"><div class="value">${tripStats.trips||0}</div><div class="label">Поездок</div></div><div class="stat-card"><div class="value">${tripStats.spent||0} ₽</div><div class="label">Потрачено</div></div><div class="stat-card"><div class="value">${tripStats.bonus||0}</div><div class="label">Бонусов</div></div><div class="stat-card"><div class="value">${lvl.name}</div><div class="label">Уровень · ${lvl.cashback}% кэшбэк</div></div></div><div class="split-person"><span>Реферальный код</span><b>${ref}</b></div><button class="btn btn-gray" style="margin-top:8px" onclick="enableAutoTheme()">🌙 Авто-тема по времени</button><button class="btn btn-red" style="margin-top:10px" onclick="resetAllVentaData()">🗑️ Сбросить все данные</button>`);
 }
 
 /* ═══ ЛЮБИМЫЕ ВОДИТЕЛИ ═══ */
@@ -1800,7 +1824,7 @@ function selectReviewStar(v){currentReview.stars=v;document.querySelectorAll('.r
 function submitReview(){const text=(document.getElementById('reviewText')?.value||'').trim();if(!currentReview.stars||!text){toast('Поставь оценку и напиши отзыв');return;}const reviews=JSON.parse(localStorage.getItem('venta_reviews')||'[]');reviews.unshift({stars:currentReview.stars,text,time:new Date().toLocaleString('ru-RU')});localStorage.setItem('venta_reviews',JSON.stringify(reviews.slice(0,30)));addNotification('Новый отзыв','Спасибо за отзыв!');closeFeatureModal();toast('Отзыв отправлен ⭐');}
 
 /* ═══ ПЕРВЫЙ ЗАПУСК ═══ */
-function initPreferences(){applyTheme(); if(!appLanguage) setTimeout(()=>document.getElementById('languageBack')?.classList.add('show'),600); else translateInterface();}
+function initPreferences(){applyTheme(); if(!themeManual){clearInterval(window.ventaAutoThemeTimer); window.ventaAutoThemeTimer=setInterval(applyTheme,60000);} if(!appLanguage) setTimeout(()=>document.getElementById('languageBack')?.classList.add('show'),600); else translateInterface();}
 
 /* ══════ УТИЛИТЫ ══════ */
 function openModal(title,html){
