@@ -433,7 +433,16 @@ body{transition:background .25s,color .25s;}
 
 .review-stars{display:flex;gap:5px;font-size:27px;justify-content:center;margin:10px 0}.review-star{cursor:pointer;opacity:.35}.review-star.active{opacity:1}.review-text{width:100%;min-height:90px;resize:vertical}
 .favorite-driver{display:flex;align-items:center;gap:10px;padding:10px;background:var(--nero);border:1px solid var(--nero-3);border-radius:14px;margin-top:8px}.favorite-driver .grow{flex:1}.heart-btn{border:1px solid var(--nero-3);background:var(--nero-2);color:#ff6b6b;border-radius:11px;padding:8px;cursor:pointer}
-.support-msg{padding:9px 11px;border-radius:13px;margin:6px 0;max-width:85%;background:var(--nero);border:1px solid var(--nero-3)}.support-msg.me{margin-left:auto;background:rgba(30,132,73,.12);border-color:rgba(30,132,73,.35)}
+.support-msg{padding:9px 11px;border-radius:13px;margin:6px 0;max-width:85%;background:var(--nero);border:1px solid var(--nero-3)}
+/* FIRST LAUNCH GREETING + LIVE DESTINATION PULSE */
+.welcome-backdrop{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.72);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;padding:18px}
+.welcome-backdrop.show{display:flex}
+.welcome-card{width:100%;max-width:390px;background:var(--nero-2);border:1px solid var(--nero-3);border-radius:26px;padding:24px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.55);animation:welcomePop .28s ease}
+.welcome-icon{font-size:56px;margin-bottom:8px}.welcome-card h3{font-size:28px;margin-bottom:8px}.welcome-card p{font-family:'Noto Sans Local','Noto Sans CJK Local',sans-serif;color:var(--grigio);font-size:16px;line-height:1.45;margin-bottom:18px}
+@keyframes welcomePop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.dot-b.live-pulse{animation:destinationPulse 1.25s ease-in-out infinite}
+@keyframes destinationPulse{0%,100%{transform:scale(1);box-shadow:0 0 8px rgba(30,132,73,.65)}50%{transform:scale(1.55);box-shadow:0 0 0 10px rgba(30,132,73,.12),0 0 24px rgba(30,132,73,.95)}}
+.support-msg.me{margin-left:auto;background:rgba(30,132,73,.12);border-color:rgba(30,132,73,.35)}
 @media(max-width:600px){.lang-modal{padding:18px}.lang-list{grid-template-columns:1fr 1fr}.tracking-eta{font-size:18px}.account-extra{grid-template-columns:1fr 1fr}.payment-row{grid-template-columns:1fr 1fr 1fr}.payment-btn{padding:9px 5px;font-size:13px}.tracking-map{height:220px}}
 </style>
 </head>
@@ -685,6 +694,9 @@ window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
   <div class="account-modal" id="featureModalContent" onclick="event.stopPropagation()"></div>
 </div>
 
+<!-- FIRST LAUNCH GREETING -->
+<div class="welcome-backdrop" id="welcomeBack"><div class="welcome-card" onclick="event.stopPropagation()"><div class="welcome-icon">👋</div><h3 id="welcomeTitle">Добро пожаловать в Venta Taxi!</h3><p id="welcomeText">Рады видеть тебя. Здесь можно быстро заказать поездку, выбрать машину и следить за маршрутом.</p><button class="btn btn-green" id="welcomeBtn" onclick="closeWelcomeGreeting()">Поехали 🚕</button></div></div>
+
 <!-- SPLASH -->
 <div id="splash">
   <div class="splash-logo">V</div>
@@ -881,6 +893,7 @@ let splitState={count:1,members:[]};
 let notifications=[];
 let driverApproved=false;
 let appLanguage=localStorage.getItem('venta_language')||'';
+let welcomeShown=localStorage.getItem('venta_welcome_shown')==='1';
 let themeMode=localStorage.getItem('venta_theme')||'auto';
 let themeManual=localStorage.getItem('venta_theme_manual')==='1';
 let favoriteDrivers=JSON.parse(localStorage.getItem('venta_favorite_drivers')||'[]');
@@ -1385,7 +1398,7 @@ function renderPassengerRide(force){
       <div class="price-top"><span class="price-label">${statusText[active.status]||'Поездка'}</span><span style="font-family:'Rustico Italiano',cursive;color:var(--grigio)">${active.id}</span></div>
       <div class="price-bar"><i style="width:${pct}%"></i></div>
       <div class="route">
-        <div class="route-dot"><i class="dot-a"></i><div class="route-line"></div><i class="dot-b"></i></div>
+        <div class="route-dot"><i class="dot-a"></i><div class="route-line"></div><i class="dot-b ${active.status==='onway'?'live-pulse':''}"></i></div>
         <div class="route-texts">
           <div class="route-text">${active.from}</div>
           <div class="route-text">${active.to}</div>
@@ -1782,7 +1795,7 @@ function resetAllVentaData(){
   location.reload();
 }
 function openLanguageModal(){ document.getElementById('languageBack').classList.add('show'); }
-function setLanguage(lang){ appLanguage=lang; localStorage.setItem('venta_language',lang); document.documentElement.lang=lang==='ru'?'ru':lang==='en'?'en':lang; document.getElementById('languageBack').classList.remove('show'); translateInterface(); toast(lang==='ru'?'🇷🇺 Русский':lang==='en'?'🇬🇧 English':lang==='zh'?'🇨🇳 中文':'🇯🇵 日本語'); }
+function setLanguage(lang){ appLanguage=lang; localStorage.setItem('venta_language',lang); document.documentElement.lang=lang==='ru'?'ru':lang==='en'?'en':lang; document.getElementById('languageBack').classList.remove('show'); translateInterface(); syncWelcomeGreeting(); if(!welcomeShown)setTimeout(showWelcomeGreeting,300); toast(lang==='ru'?'🇷🇺 Русский':lang==='en'?'🇬🇧 English':lang==='zh'?'🇨🇳 中文':'🇯🇵 日本語'); }
 const I18N={
   ru:{'Новый':'Новый','Поездка':'Поездка','История':'История','заказчик':'заказчик','водитель':'водитель','Откуда':'Откуда','Куда':'Куда','Куда едем?':'Куда едем?','Подать машину':'Подать машину','выбери машину':'выбери машину','тип подачи':'тип подачи','просьбы к водителю':'просьбы к водителю','итого':'итого','Пока нет поездки':'Пока нет поездки','Ищем водителя...':'Ищем водителя...','Водитель найден':'Водитель найден','Едет к вам':'Едет к вам','Водитель приехал':'Водитель приехал','Поездка завершена':'Поездка завершена','Профиль':'Профиль','Поддержка':'Поддержка','Язык':'Язык','Тема':'Тема'},
   en:{'Новый':'New','Поездка':'Ride','История':'History','заказчик':'Passenger','водитель':'Driver','Откуда':'From','Куда':'To','Куда едем?':'Where to?','Подать машину':'Request car','выбери машину':'choose a car','тип подачи':'pickup type','просьбы к водителю':'driver requests','итого':'total','Пока нет поездки':'No active ride','Ищем водителя...':'Finding a driver...','Водитель найден':'Driver found','Едет к вам':'Driving to you','Водитель приехал':'Driver arrived','Поездка завершена':'Ride completed','Профиль':'Profile','Поддержка':'Support','Язык':'Language','Тема':'Theme'},
@@ -1824,7 +1837,12 @@ function selectReviewStar(v){currentReview.stars=v;document.querySelectorAll('.r
 function submitReview(){const text=(document.getElementById('reviewText')?.value||'').trim();if(!currentReview.stars||!text){toast('Поставь оценку и напиши отзыв');return;}const reviews=JSON.parse(localStorage.getItem('venta_reviews')||'[]');reviews.unshift({stars:currentReview.stars,text,time:new Date().toLocaleString('ru-RU')});localStorage.setItem('venta_reviews',JSON.stringify(reviews.slice(0,30)));addNotification('Новый отзыв','Спасибо за отзыв!');closeFeatureModal();toast('Отзыв отправлен ⭐');}
 
 /* ═══ ПЕРВЫЙ ЗАПУСК ═══ */
-function initPreferences(){applyTheme(); if(!themeManual){clearInterval(window.ventaAutoThemeTimer); window.ventaAutoThemeTimer=setInterval(applyTheme,60000);} if(!appLanguage) setTimeout(()=>document.getElementById('languageBack')?.classList.add('show'),600); else translateInterface();}
+
+function closeWelcomeGreeting(){const b=document.getElementById('welcomeBack');if(b)b.classList.remove('show');welcomeShown=true;localStorage.setItem('venta_welcome_shown','1');}
+function welcomeCopy(){const n=(navigator.language||'ru').toLowerCase();const lang=appLanguage|| (n.startsWith('en')?'en':n.startsWith('zh')?'zh':n.startsWith('ja')?'ja':'ru');return ({ru:{t:'Добро пожаловать в Venta Taxi!',p:'Рады видеть тебя. Здесь можно быстро заказать поездку, выбрать машину и следить за маршрутом.',b:'Поехали 🚕'},en:{t:'Welcome to Venta Taxi!',p:'Great to see you. Order a ride, choose your car and follow the route.',b:'Let’s go 🚕'},zh:{t:'欢迎来到 Venta Taxi！',p:'很高兴见到你。现在可以叫车、选择车型并查看行程。',b:'出发 🚕'},ja:{t:'Venta Taxiへようこそ！',p:'ようこそ。配車を依頼して、車種を選び、ルートを確認できます。',b:'出発 🚕'}})[lang]||null;}
+function showWelcomeGreeting(){if(welcomeShown)return;const b=document.getElementById('welcomeBack');const c=welcomeCopy();if(!b||!c)return;document.getElementById('welcomeTitle').textContent=c.t;document.getElementById('welcomeText').textContent=c.p;document.getElementById('welcomeBtn').textContent=c.b;b.classList.add('show');}
+function syncWelcomeGreeting(){if(welcomeShown)return;const c=welcomeCopy();if(!c)return;const t=document.getElementById('welcomeTitle'),p=document.getElementById('welcomeText'),b=document.getElementById('welcomeBtn');if(t)t.textContent=c.t;if(p)p.textContent=c.p;if(b)b.textContent=c.b;}
+function initPreferences(){applyTheme(); if(!themeManual){clearInterval(window.ventaAutoThemeTimer); window.ventaAutoThemeTimer=setInterval(applyTheme,60000);} if(!appLanguage) setTimeout(()=>document.getElementById('languageBack')?.classList.add('show'),600); else {translateInterface(); setTimeout(showWelcomeGreeting,900);}}
 
 /* ══════ УТИЛИТЫ ══════ */
 function openModal(title,html){
