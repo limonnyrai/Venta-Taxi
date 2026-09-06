@@ -420,6 +420,12 @@ body{transition:background .25s,color .25s;}
 .profile-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}.profile-mini .stat-card{padding:10px}.profile-mini .value{font-size:22px}
 .tracking-card{background:linear-gradient(135deg,rgba(51,136,255,.14),rgba(30,132,73,.08));border:1px solid rgba(51,136,255,.35);border-radius:20px;padding:14px;margin-bottom:12px;overflow:hidden}
 .tracking-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.tracking-title{font-weight:800;font-size:18px}.tracking-eta{color:#3388ff;font-weight:900;font-size:20px}.tracking-sub{font-size:13px;color:var(--grigio);margin-top:4px}.tracking-road{position:relative;height:12px;background:rgba(128,128,128,.22);border-radius:99px;margin:15px 0 8px;overflow:visible}.tracking-road i{position:absolute;top:-7px;width:26px;height:26px;border-radius:50%;background:#3388ff;box-shadow:0 0 0 5px rgba(51,136,255,.18);transform:translateX(-50%);transition:left 1s linear}.tracking-road::after{content:'🚕';position:absolute;top:-14px;left:var(--car-left,40%);transform:translateX(-50%);font-size:25px;transition:left 1s linear}.tracking-points{display:flex;justify-content:space-between;font-size:12px;color:var(--grigio)}
+.night-badge{display:inline-flex;align-items:center;gap:6px;color:var(--oro);font-size:13px;padding:4px 8px;border:1px solid rgba(201,162,39,.35);border-radius:10px;background:rgba(201,162,39,.08)}
+.incognito-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--nero-2);border:1px solid var(--nero-3);border-radius:16px;padding:12px 14px;margin:12px 0 14px;cursor:pointer}
+.incognito-toggle.active{border-color:rgba(51,136,255,.55);background:rgba(51,136,255,.08)}
+.incognito-info{flex:1}.incognito-title{font-weight:800;font-size:16px}.incognito-sub{font-size:12px;color:var(--grigio);margin-top:2px}
+.toggle-pill{width:48px;height:28px;border-radius:99px;background:var(--nero-3);position:relative;transition:.2s;flex-shrink:0}.toggle-pill i{position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}.incognito-toggle.active .toggle-pill{background:#3388ff}.incognito-toggle.active .toggle-pill i{left:23px}
+.receipt-card{background:linear-gradient(145deg,rgba(201,162,39,.1),rgba(51,136,255,.07));border:1px solid rgba(201,162,39,.35);border-radius:20px;padding:16px;margin-top:12px}.receipt-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px}.receipt-row.total{border-top:1px dashed var(--nero-3);margin-top:7px;padding-top:10px;font-weight:900;font-size:18px}.receipt-actions{display:flex;gap:8px;margin-top:12px}.receipt-actions .btn{flex:1}
 .payment-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.payment-btn{border:1.5px solid var(--nero-3);background:var(--nero-2);color:var(--bianco);border-radius:14px;padding:11px 8px;font-family:'Noto Sans',sans-serif;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}.payment-btn.selected{border-color:var(--oro);box-shadow:0 0 0 1px rgba(201,162,39,.25);color:var(--oro)}.payment-btn span{font-size:13px}.payment-hint{margin-top:9px;color:var(--grigio);font-size:13px}
 .tracking-map{position:relative;height:270px;border-radius:18px;overflow:hidden;margin-top:12px;background:#ece8dc}.tracking-map img{width:100%;height:100%;object-fit:cover;display:block}.tracking-route{position:absolute;left:12%;right:12%;top:58%;height:6px;background:rgba(51,136,255,.3);border-radius:99px}.tracking-route i{position:absolute;left:var(--car-left,15%);top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;background:#3388ff;border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.28);transform:translateX(-50%);transition:left 1s linear}.tracking-car{position:absolute;left:var(--car-left,15%);top:calc(58% - 24px);font-size:28px;transform:translateX(-50%);transition:left 1s linear;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}.tracking-label{position:absolute;bottom:10px;left:10px;background:rgba(20,20,22,.78);color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;backdrop-filter:blur(5px)}
 
@@ -730,6 +736,11 @@ window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
       <button class="feature-btn red" onclick="openAccountModal()"><strong>👤 Профиль</strong><span>Аккаунт и настройки</span></button>
     </div>
 
+    <div class="incognito-toggle ${incognitoMode?'active':''}" onclick="toggleIncognito()">
+      <div class="incognito-info"><div class="incognito-title">🕶️ Инкогнито-режим</div><div class="incognito-sub">Поездка не попадёт в историю после завершения</div></div>
+      <div class="toggle-pill"><i></i></div>
+    </div>
+
     <div class="map-wrap">
       <iframe
         src="https://yandex.ru/map-widget/v1/?um=constructor%3A0ee7c293946471b953779a82f5da79f4cf780d9e7c5f5898cc1cd448c24f122d&amp;source=constructor"
@@ -861,6 +872,7 @@ let currentRole=null,passengerTab='new',driverTab='orders';
 let selCar=null,selDispatch='now',selReqs=[],selTreats=[],wheel;
 let promoState={code:null,discount:0,label:null};
 let paymentMethod='cash';
+let incognitoMode=false;
 let routeStops=[];
 let savedAddresses=[];
 let splitState={count:1,members:[]};
@@ -1110,7 +1122,12 @@ function calcPrice(){
   let fare=car.base+Math.round(km*car.perKm);
   const reqsCost=selReqs.reduce((s,r)=>s+(REQUESTS.find(x=>x.id===r)?.price||0),0);
   const treatsCost=selTreats.reduce((s,t)=>s+(TREATS.find(x=>x.id===t)?.price||0),0);
-  let subtotal=fare+reqsCost+treatsCost;
+  const hour=new Date().getHours();
+  const isNight=hour>=23 || hour<6;
+  const nightMultiplier=isNight?1.2:1;
+  const baseWithNight=Math.round(fare*nightMultiplier);
+  const nightSurcharge=baseWithNight-fare;
+  let subtotal=baseWithNight+reqsCost+treatsCost;
   let disc=0;
   if(wheel) disc += Math.round(subtotal*(1-wheel.disc));
   if(promoState.discount){
@@ -1119,13 +1136,13 @@ function calcPrice(){
     else if(p.type==='fixed') disc += Math.min(subtotal,p.discount);
   }
   const total=Math.max(0,subtotal-disc);
-  return {car,km,fare,reqsCost,treatsCost,total,disc,subtotal};
+  return {car,km,fare,nightMultiplier,nightSurcharge,reqsCost,treatsCost,total,disc,subtotal,isNight};
 }
 let estDistCache=null;
 function estimateDistance(){if(estDistCache===null)estDistCache=2+Math.random()*23;return estDistCache;}
 function resetEstimate(){estDistCache=null;}
 function renderPrice(){
-  const {car,km,fare,reqsCost,treatsCost,total,disc}=calcPrice();
+  const {car,km,fare,nightMultiplier,nightSurcharge,reqsCost,treatsCost,total,disc,isNight}=calcPrice();
   const time=Math.max(5,Math.round(km*3.2));
   document.getElementById('estPrice').textContent=money(total);
   document.getElementById('estDist').textContent=km.toFixed(1).replace('.',',')+' км';
@@ -1133,6 +1150,8 @@ function renderPrice(){
   document.getElementById('estBar').style.width=Math.min(100,km*4)+'%';
   let detail=`<div class="price-line"><span>${car.name}</span><b>${money(fare)}</b></div>`;
   detail+=`<div class="price-line"><span>${km.toFixed(1).replace('.',',')} км по ${car.perKm} ₽</span><b>${money(fare)}</b></div>`;
+  if(isNight){detail+=`<div class="price-line" style="color:var(--oro)"><span>🌙 Ночной тариф ×${nightMultiplier.toFixed(1)}</span><b>+${money(nightSurcharge)}</b></div>`;}
+  else{detail+=`<div class="price-line"><span>☀️ Дневной тариф</span><b>×1.0</b></div>`;}
   if(reqsCost)detail+=`<div class="price-line"><span>Просьбы</span><b>+${money(reqsCost)}</b></div>`;
   if(treatsCost)detail+=`<div class="price-line"><span>Угощение</span><b>+${money(treatsCost)}</b></div>`;
   if(routeStops.length){detail+=`<div class="price-line"><span>Остановки</span><b>${routeStops.length}</b></div>`;}
@@ -1211,12 +1230,40 @@ function repeatRoute(orderOrId){
   toast('🔄 Маршрут повторён');
 }
 
+/* ══════ ИНКОГНИТО ══════ */
+function toggleIncognito(){
+  incognitoMode=!incognitoMode;
+  const el=document.querySelector('.incognito-toggle'); if(el) el.classList.toggle('active',incognitoMode);
+  toast(incognitoMode?'🕶️ Инкогнито включён — поездка не сохранится в истории':'Инкогнито выключен');
+}
+
+/* ══════ ЭЛЕКТРОННЫЙ ЧЕК ══════ */
+function receiptText(order){
+  if(!order)return '';
+  const night=order.isNight?`\n🌙 Ночной тариф: ×${Number(order.nightMultiplier||1.2).toFixed(1)} (+${order.nightSurcharge||0} ₽)`:'';
+  const tips=order.tips?`\n💛 Чаевые: ${order.tips} ₽`:'';
+  return `🧾 Venta Taxi — электронный чек\nЗаказ: ${order.id}\n${order.from} → ${order.to}\n🚗 ${order.car}\n💰 Стоимость поездки: ${order.money} ₽${night}${tips}\n💳 Оплата: ${order.paymentMethod==='card'?'Карта':order.paymentMethod==='sbp'?'СБП':'Наличные'}\nСтатус: ${order.status==='done'?'Поездка завершена':'Заказ'}\nДата: ${new Date().toLocaleString('ru-RU')}`;
+}
+async function copyReceipt(orderOrId){
+  const order=typeof orderOrId==='object'?orderOrId:(state.passenger.orders.find(o=>o.id===orderOrId)||state.passenger.history.find(o=>o.id===orderOrId));
+  if(!order)return;
+  const text=receiptText(order);
+  try{await navigator.clipboard.writeText(text);toast('📋 Чек скопирован');}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Чек скопирован');}
+}
+function openReceipt(orderOrId){
+  const order=typeof orderOrId==='object'?orderOrId:(state.passenger.orders.find(o=>o.id===orderOrId)||state.passenger.history.find(o=>o.id===orderOrId));
+  if(!order)return;
+  const night=order.isNight?`<div class="receipt-row"><span>🌙 Ночной тариф ×${Number(order.nightMultiplier||1.2).toFixed(1)}</span><b>+${order.nightSurcharge||0} ₽</b></div>`:'';
+  openFeatureModal(`<div class="feature-modal-title">🧾 Электронный чек</div><div class="feature-modal-sub">Заказ ${escapeHtml(order.id)} · ${escapeHtml(order.time||'')}</div><div class="receipt-card"><div class="receipt-row"><span>Маршрут</span><b style="text-align:right">${escapeHtml(order.from)} → ${escapeHtml(order.to)}</b></div><div class="receipt-row"><span>Машина</span><b>${escapeHtml(order.car||'')}</b></div><div class="receipt-row"><span>Оплата</span><b>${order.paymentMethod==='card'?'Карта':order.paymentMethod==='sbp'?'СБП':'Наличные'}</b></div>${night}<div class="receipt-row"><span>Чаевые</span><b>${order.tips||0} ₽</b></div><div class="receipt-row total"><span>Итого</span><b>${order.money} ₽</b></div></div><div class="receipt-actions"><button class="btn btn-gold" onclick="copyReceipt('${escapeAttr(order.id)}')">📋 Копировать</button><button class="btn btn-gray" onclick="closeFeatureModal()">Закрыть</button></div>`);
+}
+
 /* ══════ ЗАКАЗ ══════ */
 function placeOrder(){
   const from=document.getElementById('pickupAddr').value.trim();
   const to=document.getElementById('dropAddr').value.trim();
   if(!from||!to){toast('Укажи откуда и куда');return;}
-  const {car,km,total}=calcPrice();
+  const {car,km,total,nightMultiplier,nightSurcharge,isNight}=calcPrice();
   const id='V-'+Date.now().toString(36).toUpperCase().slice(-5);
   const drv=DRIVERS[Math.floor(Math.random()*DRIVERS.length)];
   const order={
@@ -1224,7 +1271,7 @@ function placeOrder(){
     time:new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
     etaEndAt:null, trackingProgress:0,
     car:car.name,carIco:car.ico,driver:drv, reqs:selReqs.slice(), treats:selTreats.slice(),
-    dispatch:selDispatch, disc:wheel?wheel.label:null, paymentMethod, promo:promoState.code||null, promoLabel:promoState.label||null,
+    dispatch:selDispatch, disc:wheel?wheel.label:null, paymentMethod, promo:promoState.code||null, promoLabel:promoState.label||null, nightMultiplier, nightSurcharge, isNight, incognito:incognitoMode,
     stops:routeStops.slice(), splitCount:splitState.count||1, splitMembers:splitState.members.slice(), tips:0,
     searchStartedAt:Date.now(), foundAt:null,
   };
@@ -1233,7 +1280,7 @@ function placeOrder(){
   save();
   ventaFeedback('order');
   document.getElementById('pickupAddr').value='';document.getElementById('dropAddr').value='';
-  selReqs=[];selTreats=[];wheel=null;promoState={code:null,discount:0,label:null};routeStops=[];splitState={count:1,members:[]};resetEstimate();initReqs();initTreats();renderPrice();
+  selReqs=[];selTreats=[];wheel=null;promoState={code:null,discount:0,label:null};routeStops=[];splitState={count:1,members:[]};incognitoMode=false;resetEstimate();initReqs();initTreats();renderPrice();
   renderPassengerRide(order);showPassengerTab('ride');
   startDriverSearch(order);
   addNotification('Новый заказ','Поездка '+id+' создана');
@@ -1415,8 +1462,9 @@ function cancelRide(id){
 }
 function renderHistory(){
   const c=document.getElementById('passengerHistory');
-  if(state.passenger.history.length===0){c.innerHTML='<div class="empty"><div class="bottino">🗺️</div>История пуста<br><span class="handwriting" style="font-size:20px">Завершённые поездки здесь</span></div>';return;}
-  c.innerHTML=state.passenger.history.map(o=>`
+  const visibleHistory=state.passenger.history.filter(o=>!o.incognito);
+  if(visibleHistory.length===0){c.innerHTML='<div class="empty"><div class="bottino">🗺️</div>История пуста<br><span class="handwriting" style="font-size:20px">Завершённые поездки здесь</span></div>';return;}
+  c.innerHTML=visibleHistory.map(o=>`
     <div class="order-card">
       <div class="route-text" style="font-size:18px">${o.from} <span style="color:var(--grigio)">→</span> ${o.to}</div>
       <div class="order-bottom" style="margin-top:8px">
@@ -1427,6 +1475,7 @@ function renderHistory(){
       <div class="share-row">
         <button class="btn btn-gold repeat-btn" onclick="repeatRoute('${o.id}')">🔄 Повторить маршрут</button>
         <button class="btn btn-gray repeat-btn" onclick="shareRoute('${o.id}')">📤 Поделиться</button>
+        <button class="btn btn-gray repeat-btn" onclick="openReceipt('${o.id}')">🧾 Чек</button>
       </div>
     </div>`).join('');
 }
@@ -1455,7 +1504,7 @@ function acceptOrder(id){
 function driverStep(n){
   const o=state.driver.active;if(!o)return;
   if(n===1){o.status='arrived';const po=state.passenger.orders.find(x=>x.id===o.id);if(po)po.status='arrived';}
-  if(n===2){o.status='done';o.doneTime=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});const po=state.passenger.orders.find(x=>x.id===o.id);if(po)po.status='done';state.driver.history.unshift({...o});state.passenger.history.unshift({...o});
+  if(n===2){o.status='done';o.doneTime=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});const po=state.passenger.orders.find(x=>x.id===o.id);if(po)po.status='done';state.driver.history.unshift({...o});if(!o.incognito)state.passenger.history.unshift({...o});
     tripStats.trips=(tripStats.trips||0)+1; tripStats.spent=(tripStats.spent||0)+(o.money||0); tripStats.bonus=(tripStats.bonus||0)+Math.max(1,Math.floor((o.money||0)*0.05)); localStorage.setItem('venta_trip_stats',JSON.stringify(tripStats)); }
   save();renderDriver();
   if(o.status==='done'){toast('✅ Поездка завершена');showDriverTab('orders');}
