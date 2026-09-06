@@ -331,6 +331,10 @@ body{
 .feature-modal-sub{font-family:'Rustico Italiano',cursive;color:var(--grigio);font-size:16px;margin-bottom:14px;}
 .feature-actions{display:flex;gap:8px;margin-top:12px;}
 .feature-actions .btn{flex:1;}
+.share-row{display:flex;gap:8px;margin-top:10px;}
+.share-row .btn{flex:1;font-size:16px;padding:12px;}
+.repeat-btn{margin-top:10px;font-size:16px!important;padding:11px 12px!important;}
+
 @media(max-width:600px){
   .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .feature-btn{padding:10px 8px;font-size:14px;}
@@ -429,8 +433,8 @@ body{transition:background .25s,color .25s;}
 <!-- VENTA AUTH / SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://arwflwvedyalltfzjuoe.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_uosHNPFoq7uFB_2ax_BUtA_N4hX0ZCb';
+const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_KEY = 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY';
 const SITE_URL = 'https://limonnyrai.github.io/Venta-Taxi/';
 const AUTH_READY = !!(window.supabase && SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_KEY.startsWith('PASTE_'));
 const supabaseClient = AUTH_READY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -1147,6 +1151,66 @@ window.addEventListener('load',renderPrice);
 const SURPRISE_POINTS=['Площадь Восстания 2','Театральная площадь 1','Невский проспект 10','Университетская наб. 9','Медный всадник','Дворцовая площадь','Разводные мосты'];
 const SURPRISE_ROUTES=[['Невский проспект','Площадь Восстания'],['Петроградская','Васильевский остров'],['Московский вокзал','Аэропорт Пулково'],['Центр','Парк Победы'],['Кронштадт','Сестрорецк']];
 
+/* ══════ ЗВУК + ВИБРАЦИЯ ══════ */
+let ventaAudioCtx=null;
+function ventaFeedback(kind='order'){
+  try{
+    if(!ventaAudioCtx) ventaAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(ventaAudioCtx.state==='suspended') ventaAudioCtx.resume();
+    const now=ventaAudioCtx.currentTime;
+    const osc=ventaAudioCtx.createOscillator();
+    const gain=ventaAudioCtx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(kind==='accept'?880:660,now);
+    osc.frequency.exponentialRampToValueAtTime(kind==='accept'?1180:820,now+0.12);
+    gain.gain.setValueAtTime(0.0001,now);
+    gain.gain.exponentialRampToValueAtTime(0.11,now+0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+0.18);
+    osc.connect(gain); gain.connect(ventaAudioCtx.destination);
+    osc.start(now); osc.stop(now+0.2);
+  }catch(e){}
+  try{ if('vibrate' in navigator) navigator.vibrate(kind==='accept'?[80,50,120]:[120,60,120]); }catch(e){}
+}
+
+/* ══════ ПОДЕЛИТЬСЯ МАРШРУТОМ ══════ */
+async function shareRoute(orderOrId){
+  const order=typeof orderOrId==='object' ? orderOrId :
+    (state.passenger.orders.find(o=>o.id===orderOrId)||state.passenger.history.find(o=>o.id===orderOrId));
+  if(!order){toast('Маршрут не найден');return;}
+  const stops=(order.stops&&order.stops.length)?'\nОстановки: '+order.stops.join(' → '):'';
+  const text=`🚕 Venta Taxi\n${order.from} → ${order.to}${stops}\n💰 Цена: ${order.money} ₽\n🚗 ${order.car}`;
+  try{
+    if(navigator.share){
+      await navigator.share({title:'Venta Taxi — маршрут',text});
+      toast('📤 Маршрут отправлен');
+      return;
+    }
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('📋 Маршрут и цена скопированы');
+  }catch(e){
+    const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    toast('📋 Маршрут и цена скопированы');
+  }
+}
+
+/* ══════ ПОВТОРИТЬ МАРШРУТ ══════ */
+function repeatRoute(orderOrId){
+  const order=typeof orderOrId==='object' ? orderOrId : state.passenger.history.find(o=>o.id===orderOrId);
+  if(!order){toast('Маршрут не найден');return;}
+  document.getElementById('pickupAddr').value=order.from||'';
+  document.getElementById('dropAddr').value=order.to||'';
+  routeStops=Array.isArray(order.stops)?order.stops.slice(0,3):[];
+  if(order.car){ const c=CARS.find(x=>x.name===order.car); if(c){selCar=c.id;initCars();} }
+  if(order.paymentMethod) selectPaymentMethod(order.paymentMethod);
+  resetEstimate(); renderPrice(); showPassengerTab('new');
+  toast('🔄 Маршрут повторён');
+}
+
 /* ══════ ЗАКАЗ ══════ */
 function placeOrder(){
   const from=document.getElementById('pickupAddr').value.trim();
@@ -1167,6 +1231,7 @@ function placeOrder(){
   state.passenger.orders.unshift(order);
   state.driver.orders.unshift({...order,status:'pending',seen:false});
   save();
+  ventaFeedback('order');
   document.getElementById('pickupAddr').value='';document.getElementById('dropAddr').value='';
   selReqs=[];selTreats=[];wheel=null;promoState={code:null,discount:0,label:null};routeStops=[];splitState={count:1,members:[]};resetEstimate();initReqs();initTreats();renderPrice();
   renderPassengerRide(order);showPassengerTab('ride');
@@ -1266,6 +1331,7 @@ function renderPassengerRide(force){
       <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gold" style="flex:1" onclick="openTipModal('${active.id}')">💛 Чаевые</button><button class="btn btn-red" style="flex:1" onclick="openSOS('${active.id}')">🆘 SOS</button></div>
       <button class="btn btn-red" style="margin-top:8px" onclick="cancelRide('${active.id}')">Отменить поездку</button>
       <div style="margin-top:12px"><button class="btn btn-gold" onclick="surprise('map')">🎲 Показать маршрут на карте</button></div>
+      <div class="share-row"><button class="btn btn-gray" onclick="shareRoute('${active.id}')">📤 Поделиться маршрутом</button></div>
     `:`${showRating?`
       <div class="price-card">
         <div class="price-label" style="text-align:center">оцени поездку</div>
@@ -1358,6 +1424,10 @@ function renderHistory(){
         <span class="order-price" style="font-size:19px">${o.money} ₽</span>
       </div>
       ${o.stars?`<div style="margin-top:6px;color:var(--oro)">${'⭐'.repeat(o.stars)}</div>`:''}
+      <div class="share-row">
+        <button class="btn btn-gold repeat-btn" onclick="repeatRoute('${o.id}')">🔄 Повторить маршрут</button>
+        <button class="btn btn-gray repeat-btn" onclick="shareRoute('${o.id}')">📤 Поделиться</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1378,7 +1448,9 @@ function acceptOrder(id){
   const o=state.driver.orders.find(x=>x.id===id);if(!o)return;
   o.status='onway';state.driver.available=false;state.driver.active=o;
   const po=state.passenger.orders.find(x=>x.id===id);if(po)po.status='onway';
-  save();renderDriver();showDriverTab('active');toast('Заказ принят: '+id);
+  save();
+  ventaFeedback('accept');
+  renderDriver();showDriverTab('active');toast('Заказ принят: '+id);
 }
 function driverStep(n){
   const o=state.driver.active;if(!o)return;
