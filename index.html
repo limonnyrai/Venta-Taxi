@@ -297,6 +297,10 @@ body{
 .feature-btn.gold{border-color:rgba(201,162,39,.45);}
 .feature-btn.green{border-color:rgba(30,132,73,.45);}
 .feature-btn.red{border-color:rgba(192,57,43,.5);}
+.best-tariff-wrap{display:flex;gap:8px;margin:8px 0 4px}.best-tariff-btn{width:100%;border:1px solid rgba(201,162,39,.55);background:linear-gradient(135deg,rgba(201,162,39,.14),rgba(201,162,39,.05));color:var(--bianco);border-radius:14px;padding:11px 14px;font-family:'Noto Sans Local',sans-serif;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(201,162,39,.08)}.best-tariff-btn:active{transform:scale(.985)}
+.active-ride-glow{animation:activeRideGlow 2.5s ease-in-out infinite;box-shadow:0 0 0 1px rgba(201,162,39,.18),0 12px 34px rgba(201,162,39,.12),0 0 38px rgba(201,162,39,.16)}
+@keyframes activeRideGlow{0%,100%{box-shadow:0 0 0 1px rgba(201,162,39,.14),0 12px 30px rgba(201,162,39,.10),0 0 28px rgba(201,162,39,.10)}50%{box-shadow:0 0 0 1px rgba(201,162,39,.34),0 14px 36px rgba(201,162,39,.18),0 0 44px rgba(201,162,39,.22)}}
+
 .saved-list{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
 .saved-address{display:flex;align-items:center;gap:8px;background:var(--nero);border:1px solid var(--nero-3);border-radius:13px;padding:10px 12px;cursor:pointer;}
 .saved-address .sa-main{flex:1;}
@@ -769,6 +773,7 @@ window.addEventListener('load',()=>setTimeout(showProfileSetupIfNeeded,700));
       <div class="price-top"><span class="price-label">выбери машину</span></div>
     </div>
     <div class="cars-grid" id="carsGrid"></div>
+    <div class="best-tariff-wrap"><button class="best-tariff-btn" type="button" onclick="chooseBestTariff()">⚡ Лучший тариф по цене</button></div>
     <div class="scroll-hint">← листай машины →</div>
 
     <div style="margin-top:8px;">
@@ -1192,6 +1197,19 @@ function calcPrice(){
 let estDistCache=null;
 function estimateDistance(){if(estDistCache===null)estDistCache=2+Math.random()*23;return estDistCache;}
 function resetEstimate(){estDistCache=null;}
+function chooseBestTariff(){
+  const km=estimateDistance();
+  if(!km || km<=0){toast('Сначала укажи «Откуда» и «Куда»');return;}
+  const ranked=CARS.map(c=>({c,total:c.base+Math.round(km*c.perKm)})).sort((a,b)=>a.total-b.total);
+  const best=ranked[0];
+  selCar=best.c.id;
+  initCars();
+  renderPrice();
+  const card=document.querySelector(`#carsGrid .car-card[data-id="${best.c.id}"]`);
+  if(card){card.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});card.classList.add('selected');}
+  toast(`⚡ Выбран самый выгодный тариф: ${best.c.name} · ${best.total} ₽`);
+}
+
 function renderPrice(){
   const {car,km,fare,nightMultiplier,nightSurcharge,reqsCost,treatsCost,total,disc,isNight}=calcPrice();
   const time=Math.max(5,Math.round(km*3.2));
@@ -1394,7 +1412,7 @@ function renderPassengerRide(force){
   c.innerHTML=`
     ${trackingPanel}
     ${statusPanel}
-    <div class="price-card fade-in">
+    <div class="price-card fade-in ${active.status!=='done'?'active-ride-glow':''}">
       <div class="price-top"><span class="price-label">${statusText[active.status]||'Поездка'}</span><span style="font-family:'Rustico Italiano',cursive;color:var(--grigio)">${active.id}</span></div>
       <div class="price-bar"><i style="width:${pct}%"></i></div>
       <div class="route">
